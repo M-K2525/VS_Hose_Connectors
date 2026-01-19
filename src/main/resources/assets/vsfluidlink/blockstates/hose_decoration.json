@@ -1,0 +1,5 @@
+{
+  "variants": {
+    "": { "model": "vsfluidlink:block/hose_decoration" , "x": 90 }
+  }
+}

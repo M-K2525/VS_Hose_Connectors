@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "linked=false": {
+      "model": "vsfluidlink:block/hose_connector"
+    },
+    "linked=true": {
+      "model": "vsfluidlink:block/hose_connector_linked"
+    }
+  }
+}

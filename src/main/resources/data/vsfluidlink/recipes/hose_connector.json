@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "111",
+    "121",
+    "111"
+  ],
+  "key": {
+    "1": {
+      "item": "create:brass_casing"
+    },
+    "2": {
+      "item": "create:hose_pulley"
+    }
+  },
+  "result": {
+    "item": "vsfluidlink:hose_connector"
+  },
+  "show_notification": false
+}

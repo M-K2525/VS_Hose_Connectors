@@ -1,0 +1,105 @@
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
+    }
+}
+
+plugins {
+    id 'eclipse'
+    id 'maven-publish'
+}
+apply plugin: 'net.minecraftforge.gradle'
+
+version = '0.0.7-1.20.1'
+group = 'com.mk2525.vsfluidlink'
+archivesBaseName = 'vsHoseConnector'
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                vsHoseConnector {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                vsHoseConnector {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'tterrag maven'
+        url = 'https://maven.tterrag.com/'
+    }
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
+    maven { url = "https://maven.ithundxr.dev/mirror" } // Registrate
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+}
+
+dependencies {
+    minecraft 'net.minecraftforge:forge:1.20.1-47.4.13'
+
+    // Create (IWrenchableの実装などでコード内で直接参照しているため必須)
+    implementation(fg.deobf("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false })
+    implementation(fg.deobf("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}"))
+    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}"))
+    runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
+    implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
+    implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
+
+    // Valkyrien Skies 2 & Kotlin for Forge
+    // リフレクションを使用するため、コンパイル時の依存関係からは削除しました。
+    // これにより "Could not resolve" エラーを回避します。
+    // 実行時（ゲーム起動時）には、ModsフォルダにこれらのModを入れてください。
+    
+    // JOML (Vector3d用)
+    implementation "org.joml:joml:1.10.5"
+}
+
+jar {
+    manifest {
+        attributes([
+                "Specification-Title"     : "vsHoseConnector",
+                "Specification-Vendor"    : "mk2525",
+                "Specification-Version"   : "1",
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "mk2525",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+    destinationDirectory.set(file("${rootDir}/output"))
+}

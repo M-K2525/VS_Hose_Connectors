@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "facing=north": { "model": "vsfluidlink:block/chain_connector" },
+    "facing=south": { "model": "vsfluidlink:block/chain_connector", "y": 180 },
+    "facing=east": { "model": "vsfluidlink:block/chain_connector", "y": 90 },
+    "facing=west": { "model": "vsfluidlink:block/chain_connector", "y": 270 },
+    "facing=up": { "model": "vsfluidlink:block/chain_connector", "x": 270 },
+    "facing=down": { "model": "vsfluidlink:block/chain_connector", "x": 90 }
+  }
+}

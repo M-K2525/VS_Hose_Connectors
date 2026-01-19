@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "141",
+    "323",
+    "141"
+  ],
+  "key": {
+    "1": {
+      "item": "create:copper_sheet"
+    },
+    "2": {
+      "item": "vsfluidlink:hose_connector"
+    },
+    "3": {
+      "item": "minecraft:redstone"
+    },
+    "4": {
+      "item": "create:andesite_alloy"
+    }
+  },
+  "result": {
+    "item": "vsfluidlink:magnet_hose_connector"
+  },
+  "show_notification": false
+}

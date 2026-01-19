@@ -1,0 +1,6 @@
+{
+	"parent": "vsfluidlink:block/item_hose_connector",
+	"textures": {
+		"6": "vsfluidlink:item/air"
+	}
+}

@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north,linked=false": { "model": "vsfluidlink:block/electric_magnet_wire_connector" },
+    "facing=south,linked=false": { "model": "vsfluidlink:block/electric_magnet_wire_connector", "y": 180 },
+    "facing=west,linked=false":  { "model": "vsfluidlink:block/electric_magnet_wire_connector", "y": 270 },
+    "facing=east,linked=false":  { "model": "vsfluidlink:block/electric_magnet_wire_connector", "y": 90 },
+    "facing=up,linked=false":    { "model": "vsfluidlink:block/electric_magnet_wire_connector", "x": -90 },
+    "facing=down,linked=false":  { "model": "vsfluidlink:block/electric_magnet_wire_connector", "x": 90 },
+    "facing=north,linked=true": { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked" },
+    "facing=south,linked=true": { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked", "y": 180 },
+    "facing=west,linked=true":  { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked", "y": 270 },
+    "facing=east,linked=true":  { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked", "y": 90 },
+    "facing=up,linked=true":    { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked", "x": -90 },
+    "facing=down,linked=true":  { "model": "vsfluidlink:block/electric_magnet_wire_connector_linked", "x": 90 }
+  }
+}

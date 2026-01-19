@@ -1,0 +1,29 @@
+{
+  "block.vsfluidlink.hose_connector": "Hose Connector",
+  "item.vsfluidlink.hose_connector.tooltip": "Makes fluid transport between ships easier. \nRight-click with a wrench to set a connection point, \nthen right-click another connector to link.",
+  "block.vsfluidlink.magnet_hose_connector": "Magnet Hose Connector",
+  "item.vsfluidlink.magnet_hose_connector.tooltip": "Automatically connects to another connector in front. \nConnection is disabled by redstone signal.",
+  "block.vsfluidlink.item_hose_connector": "Item Hose Connector",
+  "item.vsfluidlink.item_hose_connector.tooltip": "Makes item transport between ships easier. \nRight-click with a wrench to set a connection point, \nthen right-click another connector to link. \nRequires rotational power (32+ RPM) to operate.",
+  "block.vsfluidlink.item_magnet_hose_connector": "Item Magnet Hose Connector",
+  "item.vsfluidlink.item_magnet_hose_connector.tooltip": "Automatically connects to another connector in front. \nConnection is disabled by redstone signal. \nRequires rotational power (32+ RPM) to operate.",
+  "block.vsfluidlink.electric_wire_connector": "Electric Wire Connector",
+  "item.vsfluidlink.electric_wire_connector.tooltip": "Makes energy (FE) transport between ships easier. \nRight-click with a wrench to set a connection point, \nthen right-click another connector to link.",
+  "block.vsfluidlink.electric_magnet_wire_connector": "Electric Magnet Wire Connector",
+  "item.vsfluidlink.electric_magnet_wire_connector.tooltip": "Automatically connects to another connector in front. \nConnection is disabled by redstone signal.",
+  "block.vsfluidlink.chain_connector": "Chain Connector",
+  "item.vsfluidlink.chain_connector.tooltip": "Makes rotational power transport between ships easier. \nRight-click with a wrench to set a connection point, \nthen right-click another connector to link.",
+  "block.vsfluidlink.magnet_chain_connector": "Magnet Chain Connector",
+  "item.vsfluidlink.magnet_chain_connector.tooltip": "Automatically connects to another connector in front. \nConnection is disabled by redstone signal.",
+
+  "creativetab.vsfluidlink_tab": "VS Hose Connectors",
+
+  "vsfluidlink.message.selection_cleared": "Selection cleared",
+  "vsfluidlink.message.first_pos_selected": "First position selected: %s",
+  "vsfluidlink.message.cannot_link_to_self": "Cannot link to itself",
+  "vsfluidlink.message.distance_too_far": "Distance too far",
+  "vsfluidlink.message.linked_successfully": "Linked successfully!",
+  "vsfluidlink.message.link_disconnected": "Link disconnected",
+  "vsfluidlink.message.world_to_world_restricted": "Connection between world blocks is restricted by config.",
+  "vsfluidlink.message.intra_ship_restricted": "Connection within the same ship is restricted by config."
+}

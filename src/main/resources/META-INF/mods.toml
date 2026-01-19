@@ -1,0 +1,42 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="vsfluidlink"
+version="0.0.7"
+displayName="VS Hose Connectors"
+authors="M_K2525"
+logoFile="icon.png"
+description='''
+Better transport between Valkyrien Skies ships.
+'''
+
+# 依存関係の定義
+[[dependencies.vsfluidlink]]
+    modId="forge"
+    mandatory=true
+    versionRange="[47,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.20.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="create"
+    mandatory=true
+    versionRange="[0.5.1,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="valkyrienskies"
+    mandatory=true
+    versionRange="[2.0.0,)"
+    ordering="AFTER"
+    side="BOTH"

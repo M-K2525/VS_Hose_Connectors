@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "linked=false": {
+      "model": "vsfluidlink:block/electric_wire_connector"
+    },
+    "linked=true": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked"
+    }
+  }
+}

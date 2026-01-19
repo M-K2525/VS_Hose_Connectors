@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.mk2525.vsfluidlink.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "vsfluidlink.refmap.json",
+  "mixins": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

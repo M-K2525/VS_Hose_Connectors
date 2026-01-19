@@ -1,0 +1,29 @@
+{
+  "block.vsfluidlink.hose_connector": "ホースコネクター",
+  "item.vsfluidlink.hose_connector.tooltip": "船間の液体輸送をより簡単に行えるようにする。\nレンチを持って右クリックで接続地点を設定し、\n他のコネクターを右クリックで接続する。",
+  "block.vsfluidlink.magnet_hose_connector": "マグネットホースコネクター",
+  "item.vsfluidlink.magnet_hose_connector.tooltip": "正面にある他のコネクターに自動で接続します。 \nレッドストーン信号が入力されると接続が解除されます。",
+  "block.vsfluidlink.item_hose_connector": "アイテムホースコネクター",
+  "item.vsfluidlink.item_hose_connector.tooltip": "船間のアイテム輸送をより簡単に行えるようにする。\nレンチを持って右クリックで接続地点を設定し、\n他のコネクターを右クリックで接続する。\n動作には回転動力(32RPM以上)が必要です。",
+  "block.vsfluidlink.item_magnet_hose_connector": "アイテムマグネットホースコネクター",
+  "item.vsfluidlink.item_magnet_hose_connector.tooltip": "正面にある他のコネクターに自動で接続します。\nレッドストーン信号が入力されると接続が解除されます。\n動作には回転動力(32RPM以上)が必要です。",
+  "block.vsfluidlink.electric_wire_connector": "電気ワイヤーコネクター",
+  "item.vsfluidlink.electric_wire_connector.tooltip": "船間のエネルギー(FE)輸送をより簡単に行えるようにする。\nレンチを持って右クリックで接続地点を設定し、\n他のコネクターを右クリックで接続する。",
+  "block.vsfluidlink.electric_magnet_wire_connector": "電気マグネットワイヤーコネクター",
+  "item.vsfluidlink.electric_magnet_wire_connector.tooltip": "正面にある他のコネクターに自動で接続します。\nレッドストーン信号が入力されると接続が解除されます。",
+  "block.vsfluidlink.chain_connector": "チェーンコネクター",
+  "item.vsfluidlink.chain_connector.tooltip": "船間の回転動力輸送をより簡単に行えるようにする。\nレンチを持って右クリックで接続地点を設定し、\n他のコネクターを右クリックで接続する。",
+  "block.vsfluidlink.magnet_chain_connector": "マグネットチェーンコネクター",
+  "item.vsfluidlink.magnet_chain_connector.tooltip": "正面にある他のコネクターに自動で接続します。\nレッドストーン信号が入力されると接続が解除されます。",
+
+  "creativetab.vsfluidlink_tab": "VS Hose Connectors",
+
+  "vsfluidlink.message.selection_cleared": "選択を解除しました",
+  "vsfluidlink.message.first_pos_selected": "接続地点1を設定しました: %s",
+  "vsfluidlink.message.cannot_link_to_self": "同じブロックには接続できません",
+  "vsfluidlink.message.distance_too_far": "距離が遠すぎます",
+  "vsfluidlink.message.linked_successfully": "正常に接続しました！",
+  "vsfluidlink.message.link_disconnected": "接続を解除しました",
+  "vsfluidlink.message.world_to_world_restricted": "地上同士の接続はサーバー設定により制限されています。",
+  "vsfluidlink.message.intra_ship_restricted": "同一船内の接続はサーバー設定により制限されています。"
+}
