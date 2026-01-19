@@ -36,7 +36,7 @@ public class MagnetChainConnectorBlockEntity extends KineticBlockEntity {
     }
 
     public MagnetChainConnectorBlockEntity(BlockPos pos, BlockState state) {
-        this(ModBlockEntities.MAGNET_BELT_CONNECTOR.get(), pos, state);
+        this(ModBlockEntities.MAGNET_CHAIN_CONNECTOR.get(), pos, state);
     }
 
     @Override

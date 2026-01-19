@@ -58,8 +58,8 @@ public class VsFluidLinkMod {
             registerProvider.invoke(null, MOD_ID, (ToDoubleFunction<Block>) block -> {
                 if (block == ModBlocks.ITEM_HOSE_CONNECTOR.get()) return 2.0;
                 if (block == ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get()) return 2.0;
-                if (block == ModBlocks.BELT_CONNECTOR.get()) return 0.0;
-                if (block == ModBlocks.MAGNET_BELT_CONNECTOR.get()) return 0.0;
+                if (block == ModBlocks.CHAIN_CONNECTOR.get()) return 0.0;
+                if (block == ModBlocks.MAGNET_CHAIN_CONNECTOR.get()) return 0.0;
                 return 0.0; 
             });
             

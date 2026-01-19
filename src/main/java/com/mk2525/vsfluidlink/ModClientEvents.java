@@ -32,8 +32,8 @@ public class ModClientEvents {
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ELECTRIC_WIRE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.BELT_CONNECTOR.get(), RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGNET_BELT_CONNECTOR.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(ModBlocks.CHAIN_CONNECTOR.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGNET_CHAIN_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.HOSE_DECORATION.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGNET_HOSE_DECORATION.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.SMALL_HOSE_DECORATION.get(), RenderType.cutout());
@@ -49,7 +49,7 @@ public class ModClientEvents {
         event.registerBlockEntityRenderer(ModBlockEntities.ITEM_MAGNET_HOSE_CONNECTOR.get(), ItemMagnetHoseConnectorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ELECTRIC_WIRE_CONNECTOR.get(), ElectricWireConnectorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), ElectricMagnetWireConnectorRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.BELT_CONNECTOR.get(), ChainConnectorRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.MAGNET_BELT_CONNECTOR.get(), MagnetChainConnectorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.CHAIN_CONNECTOR.get(), ChainConnectorRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.MAGNET_CHAIN_CONNECTOR.get(), MagnetChainConnectorRenderer::new);
     }
 }

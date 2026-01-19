@@ -92,7 +92,7 @@ public class MagnetChainConnectorBlock extends DirectionalKineticBlock implement
 
     @Override
     public BlockEntityType<? extends MagnetChainConnectorBlockEntity> getBlockEntityType() {
-        return ModBlockEntities.MAGNET_BELT_CONNECTOR.get();
+        return ModBlockEntities.MAGNET_CHAIN_CONNECTOR.get();
     }
 
     @Override

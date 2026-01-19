@@ -55,11 +55,11 @@ public class ModBlocks {
             () -> new ElectricMagnetWireConnectorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.DIAMOND).strength(3.0f).noOcclusion()),
             "item.vsfluidlink.electric_magnet_wire_connector.tooltip");
 
-    public static final RegistryObject<Block> BELT_CONNECTOR = registerBlock("chain_connector",
+    public static final RegistryObject<Block> CHAIN_CONNECTOR = registerBlock("chain_connector",
             () -> new ChainConnectorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(3.0f).noOcclusion()),
             "item.vsfluidlink.chain_connector.tooltip");
 
-    public static final RegistryObject<Block> MAGNET_BELT_CONNECTOR = registerBlock("magnet_chain_connector",
+    public static final RegistryObject<Block> MAGNET_CHAIN_CONNECTOR = registerBlock("magnet_chain_connector",
             () -> new MagnetChainConnectorBlock(BlockBehaviour.Properties.of().mapColor(MapColor.DIAMOND).strength(3.0f).noOcclusion()),
             "item.vsfluidlink.magnet_chain_connector.tooltip");
 

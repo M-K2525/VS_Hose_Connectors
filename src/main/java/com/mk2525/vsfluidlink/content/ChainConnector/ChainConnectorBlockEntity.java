@@ -27,7 +27,7 @@ public class ChainConnectorBlockEntity extends KineticBlockEntity {
     }
 
     public ChainConnectorBlockEntity(BlockPos pos, BlockState state) {
-        this(ModBlockEntities.BELT_CONNECTOR.get(), pos, state);
+        this(ModBlockEntities.CHAIN_CONNECTOR.get(), pos, state);
     }
 
     @Override

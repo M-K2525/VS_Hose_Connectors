@@ -36,11 +36,11 @@ public class ModBlockEntities {
     public static final RegistryObject<BlockEntityType<ElectricMagnetWireConnectorBlockEntity>> ELECTRIC_MAGNET_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_magnet_wire_connector",
             () -> BlockEntityType.Builder.of(ElectricMagnetWireConnectorBlockEntity::new, ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ChainConnectorBlockEntity>> BELT_CONNECTOR = BLOCK_ENTITIES.register("chain_connector",
-            () -> BlockEntityType.Builder.of(ChainConnectorBlockEntity::new, ModBlocks.BELT_CONNECTOR.get()).build(null));
+    public static final RegistryObject<BlockEntityType<ChainConnectorBlockEntity>> CHAIN_CONNECTOR = BLOCK_ENTITIES.register("chain_connector",
+            () -> BlockEntityType.Builder.of(ChainConnectorBlockEntity::new, ModBlocks.CHAIN_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<MagnetChainConnectorBlockEntity>> MAGNET_BELT_CONNECTOR = BLOCK_ENTITIES.register("magnet_chain_connector",
-            () -> BlockEntityType.Builder.of(MagnetChainConnectorBlockEntity::new, ModBlocks.MAGNET_BELT_CONNECTOR.get()).build(null));
+    public static final RegistryObject<BlockEntityType<MagnetChainConnectorBlockEntity>> MAGNET_CHAIN_CONNECTOR = BLOCK_ENTITIES.register("magnet_chain_connector",
+            () -> BlockEntityType.Builder.of(MagnetChainConnectorBlockEntity::new, ModBlocks.MAGNET_CHAIN_CONNECTOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);

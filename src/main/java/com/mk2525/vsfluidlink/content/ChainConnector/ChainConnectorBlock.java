@@ -201,7 +201,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
     @Override
     public BlockEntityType<? extends ChainConnectorBlockEntity> getBlockEntityType() {
-        return ModBlockEntities.BELT_CONNECTOR.get();
+        return ModBlockEntities.CHAIN_CONNECTOR.get();
     }
 
     @Override

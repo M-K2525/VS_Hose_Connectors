@@ -23,8 +23,8 @@ public class ModCreativeModeTabs {
                         pOutput.accept(ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get());
                         pOutput.accept(ModBlocks.ELECTRIC_WIRE_CONNECTOR.get());
                         pOutput.accept(ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get());
-                        pOutput.accept(ModBlocks.BELT_CONNECTOR.get());
-                        pOutput.accept(ModBlocks.MAGNET_BELT_CONNECTOR.get());
+                        pOutput.accept(ModBlocks.CHAIN_CONNECTOR.get());
+                        pOutput.accept(ModBlocks.MAGNET_CHAIN_CONNECTOR.get());
                     })
                     .build());
 
