@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 
 public class VSLinkUtil {
@@ -56,7 +57,7 @@ public class VSLinkUtil {
                                          LOGGER.info("[VS Fluid Link DEBUG] Methods available in QueryableShipData (" + className + "):");
                                          Arrays.stream(queryableShipData.getClass().getMethods())
                                                .map(Method::getName)
-                                               .filter(name -> name.toLowerCase().contains("ship") || name.toLowerCase().contains("get"))
+                                               .filter(name -> name.toLowerCase(Locale.ROOT).contains("ship") || name.toLowerCase(Locale.ROOT).contains("get"))
                                                .forEach(name -> LOGGER.info(" - " + name));
                                      }
                                  }

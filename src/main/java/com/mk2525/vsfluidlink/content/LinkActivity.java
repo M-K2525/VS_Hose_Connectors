@@ -1,6 +1,7 @@
 package com.mk2525.vsfluidlink.content;
 
 import net.minecraft.util.StringRepresentable;
+import java.util.Locale;
 
 public enum LinkActivity implements StringRepresentable {
     NONE,
@@ -9,7 +10,7 @@ public enum LinkActivity implements StringRepresentable {
 
     @Override
     public String getSerializedName() {
-        return this.name().toLowerCase();
+        return this.name().toLowerCase(Locale.ROOT);
     }
 
     @Override
