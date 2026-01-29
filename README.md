@@ -1,4 +1,4 @@
-## You can download the mod from one of the following sources
+## You can download the mod from one of the following
 
 https://modrinth.com/mod/vs-hose-connectors
 
