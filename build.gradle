@@ -15,7 +15,7 @@ plugins {
 }
 apply plugin: 'net.minecraftforge.gradle'
 
-version = '0.0.8-1.20.1'
+version = '0.0.9-1.20.1'
 group = 'com.mk2525.vsfluidlink'
 archivesBaseName = 'vsHoseConnectors'
 
