@@ -21,7 +21,7 @@
   "vsfluidlink.message.selection_cleared": "已清除选择",
   "vsfluidlink.message.first_pos_selected": "已选择第一个位置：%s",
   "vsfluidlink.message.cannot_link_to_self": "无法连接到自身",
-  "vsfluidlink.message.distance_too_far": "距离过远（>10格）",
+  "vsfluidlink.message.distance_too_far": "距离过远",
   "vsfluidlink.message.linked_successfully": "连接成功！",
   "vsfluidlink.message.link_disconnected": "连接已断开",
   "vsfluidlink.message.world_to_world_restricted": "世界中的方块连接受配置文件限制。",
