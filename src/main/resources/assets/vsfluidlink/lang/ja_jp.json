@@ -20,6 +20,7 @@
 
   "vsfluidlink.message.selection_cleared": "選択を解除しました",
   "vsfluidlink.message.first_pos_selected": "接続地点1を設定しました: %s",
+  "vsfluidlink.message.second_pos_selected": "接続地点2を設定し、接続しました: %s",
   "vsfluidlink.message.cannot_link_to_self": "同じブロックには接続できません",
   "vsfluidlink.message.distance_too_far": "距離が遠すぎます",
   "vsfluidlink.message.linked_successfully": "正常に接続しました！",

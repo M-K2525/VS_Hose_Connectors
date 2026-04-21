@@ -8,8 +8,8 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
+import com.simibubi.create.foundation.render.BlockEntityRenderHelper;
 import net.createmod.catnip.render.CachedBuffers;
-import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -32,7 +32,7 @@ import java.lang.reflect.Method;
 
 public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHoseConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation TEXTURE = new ResourceLocation("create", "textures/block/hose_pulley_coil_scroll.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("create", "textures/block/hose_pulley_coil_scroll.png");
     private static final float WIDTH = 0.4f;
     private final BlockRenderDispatcher blockRenderer;
 
@@ -44,12 +44,7 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
     @Override
     protected void renderSafe(ItemHoseConnectorBlockEntity be, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay) {
         if (VSLinkUtil.isVirtualWorld(be.getLevel())) return;
-        // Render shaft
-        BlockState shaftState = getRenderedBlockState(be);
-        if (shaftState != null) {
-            SuperByteBuffer superByteBuffer = CachedBuffers.block(shaftState);
-            standardKineticRotationTransform(superByteBuffer, be, light).renderInto(poseStack, bufferSource.getBuffer(RenderType.solid()));
-        }
+        renderShaft(be, poseStack, bufferSource, light);
         
         BlockPos selfPos = be.getBlockPos();
         BlockPos targetPos = be.getTargetPos();
@@ -72,6 +67,7 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
 
         Vec3 localDiff = diff;
         try {
+            if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
             Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
             Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
             Object ship = getShipManagingPos.invoke(null, be.getLevel(), selfPos);
@@ -119,6 +115,11 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
     @Override
     protected BlockState getRenderedBlockState(ItemHoseConnectorBlockEntity be) {
         return AllBlocks.SHAFT.get().defaultBlockState().setValue(ShaftBlock.AXIS, getRotationAxisOf(be));
+    }
+
+    private void renderShaft(ItemHoseConnectorBlockEntity be, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
+        BlockState shaftState = getRenderedBlockState(be);
+        renderRotatingBuffer(be, CachedBuffers.block(KINETIC_BLOCK, shaftState), poseStack, bufferSource.getBuffer(RenderType.solid()), light);
     }
     
     private void renderDecoration(PoseStack ms, MultiBufferSource buffer, Vec3 diff, int light) {
@@ -199,13 +200,12 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
     }
 
     private void vertex(VertexConsumer builder, Matrix4f m, Vector3f pos, float u, float v, int light) {
-        builder.vertex(m, pos.x(), pos.y(), pos.z())
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 1, 0)
-                .endVertex();
+        builder.addVertex(m, pos.x(), pos.y(), pos.z())
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 1, 0);
     }
     
     private int brightestLight(Level level, BlockPos pos1, BlockPos pos2) {

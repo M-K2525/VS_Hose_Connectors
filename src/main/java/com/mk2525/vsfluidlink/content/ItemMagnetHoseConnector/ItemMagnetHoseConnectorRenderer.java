@@ -8,8 +8,8 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
+import com.simibubi.create.foundation.render.BlockEntityRenderHelper;
 import net.createmod.catnip.render.CachedBuffers;
-import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -46,12 +46,7 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
     @Override
     protected void renderSafe(ItemMagnetHoseConnectorBlockEntity be, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay) {
         if (VSLinkUtil.isVirtualWorld(be.getLevel())) return;
-        // Render shaft
-        BlockState shaftState = getRenderedBlockState(be);
-        if (shaftState != null) {
-            SuperByteBuffer superByteBuffer = CachedBuffers.block(shaftState);
-            standardKineticRotationTransform(superByteBuffer, be, light).renderInto(poseStack, bufferSource.getBuffer(RenderType.solid()));
-        }
+        renderShaft(be, poseStack, bufferSource, light);
         
         BlockPos selfPos = be.getBlockPos();
         BlockPos targetPos = be.getTargetPos();
@@ -63,7 +58,7 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
             return;
         }
         
-        // 中心のワールド座標を取得
+        // 闕ｳ・ｭ陟｢繝ｻ繝ｻ郢晢ｽｯ郢晢ｽｼ郢晢ｽｫ郢晉甥・ｺ・ｧ隶灘生・定愾髢・ｾ繝ｻ
         Vec3 startCenterPos = ItemMagnetHoseConnectorBlockEntity.getWorldPos(be.getLevel(), selfPos, true);
         Vec3 endCenterPos = ItemMagnetHoseConnectorBlockEntity.getWorldPos(be.getLevel(), targetPos, true);
         Vec3 diff = endCenterPos.subtract(startCenterPos);
@@ -72,7 +67,7 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
 
         poseStack.pushPose();
 
-        // --- オフセットとベクトルの計算 ---
+        // --- 郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ邵ｺ・ｨ郢晏生縺醍ｹ晏現ﾎ晉ｸｺ・ｮ髫ｪ閧ｲ・ｮ繝ｻ---
         BlockState startState = be.getBlockState();
         BlockState endState = be.getLevel().getBlockState(targetPos);
 
@@ -84,12 +79,12 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
             Object selfShip = getShipAt(be.getLevel(), selfPos);
             Object targetShip = getShipAt(be.getLevel(), targetPos);
 
-            // 1. ワールド差分ベクトルを、始点ブロックのローカル座標系に変換
+            // 1. 郢晢ｽｯ郢晢ｽｼ郢晢ｽｫ郢晉甥・ｷ・ｮ陋ｻ繝ｻ繝ｻ郢ｧ・ｯ郢晏現ﾎ晉ｹｧ蛛ｵﾂ竏晢ｽｧ迢励○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢晢ｽｭ郢晢ｽｼ郢ｧ・ｫ郢晢ｽｫ陟趣ｽｧ隶灘衷・ｳ・ｻ邵ｺ・ｫ陞溽判驪､
             if (selfShip != null) {
                 localDiff = transformVector(diff, selfShip, true); // worldToShip
             }
 
-            // 2. 終点ブロックのオフセットを計算し、始点ブロックのローカル座標系に変換
+            // 2. 驍ｨ繧峨○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ郢ｧ螳夲ｽｨ閧ｲ・ｮ蜉ｱ・邵ｲ竏晢ｽｧ迢励○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢晢ｽｭ郢晢ｽｼ郢ｧ・ｫ郢晢ｽｫ陟趣ｽｧ隶灘衷・ｳ・ｻ邵ｺ・ｫ陞溽判驪､
             if (endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
                 Vec3 targetOffsetWorld = getOffsetFor(be.getLevel(), targetPos, endState);
                 if (selfShip != null) {
@@ -99,13 +94,13 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
                 }
             }
         } catch (Exception e) {
-            // エラー発生時は、オフセットなしの地上にいるものとして描画を試みる
+            // 郢ｧ・ｨ郢晢ｽｩ郢晢ｽｼ騾具ｽｺ騾墓ｻ灘・邵ｺ・ｯ邵ｲ竏壹′郢晁ｼ斐◎郢昴・繝ｨ邵ｺ・ｪ邵ｺ蜉ｱ繝ｻ陜ｨ・ｰ闕ｳ鄙ｫ竊鍋ｸｺ繝ｻ・狗ｹｧ繧・・邵ｺ・ｨ邵ｺ蜉ｱ窶ｻ隰蜀怜愛郢ｧ螳夲ｽｩ・ｦ邵ｺ・ｿ郢ｧ繝ｻ
             if (endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
                 endOffset = getLocalOffset(endState);
             }
         }
         
-        // --- 描画 ---
+        // --- 隰蜀怜愛 ---
         poseStack.translate(0.5, 0.5, 0.5);
         
         int brightestLight = brightestLight(be.getLevel(), selfPos, targetPos);
@@ -119,6 +114,11 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
     @Override
     protected BlockState getRenderedBlockState(ItemMagnetHoseConnectorBlockEntity be) {
         return AllBlocks.SHAFT.get().defaultBlockState().setValue(ShaftBlock.AXIS, getRotationAxisOf(be));
+    }
+
+    private void renderShaft(ItemMagnetHoseConnectorBlockEntity be, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
+        BlockState shaftState = getRenderedBlockState(be);
+        renderRotatingBuffer(be, CachedBuffers.block(KINETIC_BLOCK, shaftState), poseStack, bufferSource.getBuffer(RenderType.solid()), light);
     }
     
     private Vector3f getLocalOffset(BlockState state) {
@@ -164,7 +164,8 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
     }
     
     private Object getShipAt(Level level, BlockPos pos) throws Exception {
-        Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
+        if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
+            Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
         Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
         return getShipManagingPos.invoke(null, level, pos);
     }
@@ -253,13 +254,12 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
     }
 
     private void vertex(VertexConsumer builder, Matrix4f m, Vector3f pos, float u, float v, int light) {
-        builder.vertex(m, pos.x(), pos.y(), pos.z())
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 1, 0)
-                .endVertex();
+        builder.addVertex(m, pos.x(), pos.y(), pos.z())
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 1, 0);
     }
     
     private int brightestLight(Level level, BlockPos pos1, BlockPos pos2) {

@@ -13,14 +13,13 @@ import com.mk2525.vsfluidlink.registry.ModBlocks;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.EntityRenderersEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.slf4j.Logger;
 
-@Mod.EventBusSubscriber(modid = VsFluidLinkMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = VsFluidLinkMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
 public class ModClientEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
@@ -41,7 +40,7 @@ public class ModClientEvents {
     }
 
     @SubscribeEvent
-    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+    public static void registerRenderers(RegisterRenderers event) {
         LOGGER.info("Registering BlockEntityRenderers for VsFluidLink");
         event.registerBlockEntityRenderer(ModBlockEntities.HOSE_CONNECTOR.get(), HoseConnectorRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.MAGNET_HOSE_CONNECTOR.get(), MagnetHoseConnectorRenderer::new);

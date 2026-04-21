@@ -1,92 +1,86 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.+', changing: true
-    }
-}
-
 plugins {
     id 'eclipse'
     id 'maven-publish'
+    id 'net.neoforged.moddev' version '2.0.140'
 }
-apply plugin: 'net.minecraftforge.gradle'
 
-version = '0.0.9-1.20.1'
+version = '0.0.9-1.21.1'
 group = 'com.mk2525.vsfluidlink'
 archivesBaseName = 'vsHoseConnectors'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
 
-minecraft {
-    mappings channel: 'official', version: '1.20.1'
+compileJava {
+    options.encoding = 'UTF-8'
+}
+
+neoForge {
+    version = project.neoforge_version
 
     runs {
         client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-
-            mods {
-                vsHoseConnector {
-                    source sourceSets.main
-                }
-            }
+            client()
         }
 
         server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
+            server()
+        }
+    }
 
-            mods {
-                vsHoseConnector {
-                    source sourceSets.main
-                }
-            }
+    mods {
+        vsfluidlink {
+            sourceSet sourceSets.main
         }
     }
 }
 
 repositories {
     mavenCentral()
+    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
+    maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
     maven {
         name = 'tterrag maven'
         url = 'https://maven.tterrag.com/'
     }
     maven {
-        url "https://cursemaven.com"
+        url "https://www.cursemaven.com"
         content {
             includeGroup "curse.maven"
         }
     }
-    maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
-    maven { url = "https://maven.ithundxr.dev/mirror" } // Registrate
-    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+    // Create, Ponder, Registrate
+    maven { url = "https://maven.tterrag.com/" }
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.4.13'
-
-    // Create (IWrenchableの実装などでコード内で直接参照しているため必須)
-    implementation(fg.deobf("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false })
-    implementation(fg.deobf("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}"))
-    compileOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}"))
-    runtimeOnly(fg.deobf("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}"))
-    implementation(fg.deobf("com.tterrag.registrate:Registrate:${registrate_version}"))
-    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
-    implementation("io.github.llamalad7:mixinextras-forge:0.4.1")
-
-    // Valkyrien Skies 2 & Kotlin for Forge
-    // リフレクションを使用するため、コンパイル時の依存関係からは削除しました。
-    // これにより "Could not resolve" エラーを回避します。
-    // 実行時（ゲーム起動時）には、ModsフォルダにこれらのModを入れてください。
+    // Create for NeoForge 1.21.1
+    // 以前の差分で libs 内の jar を参照していたため、それに合わせます
+    implementation files('libs/create-1.21.1-6.0.9.jar')
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
+    implementation("com.tterrag.registrate:Registrate:${registrate_version}")
     
-    // JOML (Vector3d用)
-    implementation "org.joml:joml:1.10.5"
+    // 他に必要な依存関係があればここに追加
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = archivesBaseName
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/local-maven"
+        }
+    }
 }
 
 jar {
@@ -101,5 +95,4 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-    destinationDirectory.set(file("${rootDir}/output"))
 }

@@ -5,11 +5,16 @@ import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -17,8 +22,8 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
-public class ChainConnectorBlockEntity extends KineticBlockEntity {
-    
+public class ChainConnectorBlockEntity extends KineticBlockEntity implements IRotate {
+
     private BlockPos targetPos;
     private int checkCooldown = 0;
 
@@ -31,61 +36,81 @@ public class ChainConnectorBlockEntity extends KineticBlockEntity {
     }
 
     @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+        super.addBehaviours(behaviours);
+    }
+
+    @Override
     public float calculateStressApplied() {
         return 0.0f;
     }
 
     @Override
     public AABB getRenderBoundingBox() {
-        return INFINITE_EXTENT_AABB;
+        return new AABB(
+            getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+            getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + 1
+        );
     }
 
     public void setTargetPos(BlockPos targetPos) {
         if (this.level == null) return;
-        
+
         BlockPos oldTarget = this.targetPos;
         boolean wasLinked = oldTarget != null;
         boolean isLinked = targetPos != null;
-        
+
         this.targetPos = targetPos;
         setChanged();
-        
+
         if (wasLinked != isLinked) {
             BlockState currentState = getBlockState();
             if (currentState.hasProperty(ChainConnectorBlock.LINKED)) {
                 level.setBlock(getBlockPos(), currentState.setValue(ChainConnectorBlock.LINKED, isLinked), 3);
             }
         }
-        
+
         if (!level.isClientSide) {
             sendData();
-            
-            // ネットワーク更新をトリガー
+            refreshKineticConnection(level, oldTarget);
+            refreshKineticConnection(level, targetPos);
+            refreshOwnKinetics();
+
             if (isLinked) {
-                attachKinetics();
+                // ネットワーク更新
                 if (level.getBlockEntity(targetPos) instanceof ChainConnectorBlockEntity targetBe) {
                     // 相手側も更新
-                    targetBe.attachKinetics();
                 }
             } else {
-                detachKinetics(); // 一度切り離す
-                // 再接続のために少し遅延させるか、あるいは即座に再アタッチするか
-                // ここでは単純にdetachして、tickで再チェックされるのを待つか、
-                // あるいはattachKineticsを呼ぶと、接続先がない状態で再構築される。
-                // ただし、removeSource()なども必要かもしれない。
-                
                 if (oldTarget != null && level.isLoaded(oldTarget)) {
                     if (level.getBlockEntity(oldTarget) instanceof ChainConnectorBlockEntity oldTargetBe) {
-                         oldTargetBe.detachKinetics();
-                         // oldTargetBe.attachKinetics(); // 必要なら
                     }
                 }
             }
         }
     }
-    
+
     public BlockPos getTargetPos() {
         return targetPos;
+    }
+
+    private static void refreshKineticConnection(Level level, BlockPos pos) {
+        if (pos == null || !level.isLoaded(pos)) {
+            return;
+        }
+        if (level.getBlockEntity(pos) instanceof ChainConnectorBlockEntity connector) {
+            connector.refreshOwnKinetics();
+        }
+    }
+
+    private void refreshOwnKinetics() {
+        if (level == null || level.isClientSide || isRemoved()) {
+            return;
+        }
+        detachKinetics();
+        removeSource();
+        attachKinetics();
+        sendData();
     }
 
     // --- Create Kinetic Network Integration ---
@@ -100,9 +125,6 @@ public class ChainConnectorBlockEntity extends KineticBlockEntity {
 
     @Override
     public List<BlockPos> addPropagationLocations(IRotate block, BlockState state, List<BlockPos> neighbours) {
-        // 通常の隣接ブロックへの伝播
-        super.addPropagationLocations(block, state, neighbours);
-        
         // 接続先への伝播を追加
         if (targetPos != null) {
             neighbours.add(targetPos);
@@ -115,7 +137,20 @@ public class ChainConnectorBlockEntity extends KineticBlockEntity {
         if (targetPos != null && other.getBlockPos().equals(targetPos)) {
             return true;
         }
-        return super.isCustomConnection(other, state, otherState);
+        return false;
+    }
+
+    @Override
+    public boolean hasShaftTowards(LevelReader level, BlockPos pos, BlockState state, Direction face) {
+        return state.getBlock() instanceof ChainConnectorBlock block && face.getAxis() == block.getRotationAxis(state);
+    }
+
+    @Override
+    public Direction.Axis getRotationAxis(BlockState state) {
+        if (state.getBlock() instanceof ChainConnectorBlock block) {
+            return block.getRotationAxis(state);
+        }
+        return Direction.Axis.Y;
     }
 
     // ------------------------------------------
@@ -156,23 +191,28 @@ public class ChainConnectorBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
         if (targetPos != null) {
-            tag.put("TargetPos", NbtUtils.writeBlockPos(targetPos));
+            CompoundTag targetTag = new CompoundTag();
+            targetTag.putInt("x", targetPos.getX());
+            targetTag.putInt("y", targetPos.getY());
+            targetTag.putInt("z", targetPos.getZ());
+            tag.put("TargetPos", targetTag);
         }
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
         if (tag.contains("TargetPos")) {
-            targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));
+            CompoundTag targetTag = tag.getCompound("TargetPos");
+            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
         } else {
             targetPos = null;
         }
     }
-    
+
     @Override
     public void remove() {
         // ブロックが撤去されたときに接続を切る

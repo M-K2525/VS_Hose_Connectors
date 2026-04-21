@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.content.ChainConnector;
 
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
+import com.mk2525.vsfluidlink.util.LinkSelection;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -14,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +36,7 @@ import net.minecraft.world.phys.Vec3;
 public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<ChainConnectorBlockEntity>, IWrenchable {
 
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
+    private static final String LINK_SELECTION_CHANNEL = "chain_connector";
 
     public ChainConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
@@ -58,11 +61,11 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
         if (facing.getAxis().isVertical()) {
             return Axis.X;
         }
-        // North/South (Z軸) のときは East/West (X軸) に接続
+        // North/South (Z霆ｸ) 縺ｮ縺ｨ縺阪・ East/West (X霆ｸ) 縺ｫ謗･邯・
         if (facing.getAxis() == Axis.Z) {
             return Axis.X;
         }
-        // East/West (X軸) のときは North/South (Z軸) に接続
+        // East/West (X霆ｸ) 縺ｮ縺ｨ縺阪・ North/South (Z霆ｸ) 縺ｫ謗･邯・
         return Axis.Z;
     }
 
@@ -88,20 +91,29 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
         super.onRemove(state, level, pos, newState, isMoving);
     }
 
-    @Override
+    // In 1.21, BaseEntityBlock.use() became internal; override the method without @Override
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getItemInHand(hand);
 
         if (heldItem.getItem().getDescriptionId().contains("wrench")) {
             if (level.isClientSide) return InteractionResult.SUCCESS;
 
-            CompoundTag tag = heldItem.getOrCreateTag();
+            CompoundTag tag = new CompoundTag();
+            BlockPos selectedLinkPos = LinkSelection.get(player, LINK_SELECTION_CHANNEL);
+            if (selectedLinkPos != null) {
+                CompoundTag selectedTag = new CompoundTag();
+                selectedTag.putInt("x", selectedLinkPos.getX());
+                selectedTag.putInt("y", selectedLinkPos.getY());
+                selectedTag.putInt("z", selectedLinkPos.getZ());
+                tag.put("LinkPos", selectedTag);
+            }
 
             if (player.isShiftKeyDown()) {
                 if (tag.contains("LinkPos")) {
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
                 }
                 return InteractionResult.SUCCESS;
             }
@@ -124,9 +136,11 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                 level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
 
                 if (tag.contains("LinkPos")) {
-                    BlockPos selectedPos = net.minecraft.nbt.NbtUtils.readBlockPos(tag.getCompound("LinkPos"));
+                    CompoundTag linkPosTag = tag.getCompound("LinkPos");
+                    BlockPos selectedPos = new BlockPos(linkPosTag.getInt("x"), linkPosTag.getInt("y"), linkPosTag.getInt("z"));
                     if (selectedPos.equals(pos)) {
                         tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     }
                 }
 
@@ -134,11 +148,17 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
             }
 
             if (!tag.contains("LinkPos")) {
-                tag.put("LinkPos", net.minecraft.nbt.NbtUtils.writeBlockPos(pos));
+                CompoundTag linkPosTag = new CompoundTag();
+                linkPosTag.putInt("x", pos.getX());
+                linkPosTag.putInt("y", pos.getY());
+                linkPosTag.putInt("z", pos.getZ());
+                tag.put("LinkPos", linkPosTag);
+                LinkSelection.set(player, LINK_SELECTION_CHANNEL, pos);
                 player.displayClientMessage(Component.translatable("vsfluidlink.message.first_pos_selected", pos.toShortString()), true);
-                level.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+                level.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
             } else {
-                BlockPos firstPos = net.minecraft.nbt.NbtUtils.readBlockPos(tag.getCompound("LinkPos"));
+                CompoundTag firstTag = tag.getCompound("LinkPos");
+                BlockPos firstPos = new BlockPos(firstTag.getInt("x"), firstTag.getInt("y"), firstTag.getInt("z"));
 
                 if (firstPos.equals(pos)) {
                      player.displayClientMessage(Component.translatable("vsfluidlink.message.cannot_link_to_self"), true);
@@ -150,8 +170,9 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
                 if (pos1.distanceToSqr(pos2) > 100.0) {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.distance_too_far"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -163,15 +184,17 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
                 if (isWorldToWorld && VsFluidLinkConfig.SERVER.restrictWorldToWorldConnection.get()) {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.world_to_world_restricted"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
                 if (isIntraShip && VsFluidLinkConfig.SERVER.restrictIntraShipConnection.get()) {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.intra_ship_restricted"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
+                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -182,16 +205,24 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     link1.setTargetPos(pos);
                     link2.setTargetPos(firstPos);
 
-                    player.displayClientMessage(Component.translatable("vsfluidlink.message.linked_successfully"), true);
+                    player.displayClientMessage(Component.translatable("vsfluidlink.message.second_pos_selected", pos.toShortString()), true);
                     level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     level.playSound(null, firstPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                 }
             }
             return InteractionResult.SUCCESS;
         }
 
-        return super.use(state, level, pos, player, hand, hit);
+        return InteractionResult.PASS;
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+        return use(state, level, pos, player, hand, hit).consumesAction()
+                ? ItemInteractionResult.SUCCESS
+                : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     @Override

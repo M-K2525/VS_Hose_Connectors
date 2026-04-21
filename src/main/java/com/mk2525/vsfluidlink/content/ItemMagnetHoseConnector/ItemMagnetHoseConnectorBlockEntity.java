@@ -7,9 +7,11 @@ import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
@@ -19,25 +21,25 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    }
     private static final Logger LOGGER = LogUtils.getLogger();
-    
+
     private static final Set<BlockPos> ALL_CONNECTORS = Collections.synchronizedSet(new HashSet<>());
-    
+
     protected final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -48,8 +50,6 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         }
     };
 
-    protected final LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
-    
     private BlockPos targetPos;
     private int scanCooldown = 0;
 
@@ -75,35 +75,30 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    public void remove() {
-        super.remove();
-        if (level != null && !level.isClientSide) {
-            ALL_CONNECTORS.remove(getBlockPos());
-        }
-    }
-
-    @Override
     public AABB getRenderBoundingBox() {
-        return INFINITE_EXTENT_AABB;
+        return new AABB(
+            getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+            getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + 1
+        );
     }
 
     public void setTargetPos(BlockPos targetPos) {
         if (this.level == null) return;
-        
+
         BlockPos oldTarget = this.targetPos;
         boolean wasLinked = oldTarget != null;
         boolean isLinked = targetPos != null;
-        
+
         this.targetPos = targetPos;
         setChanged();
-        
+
         if (wasLinked != isLinked) {
             BlockState currentState = getBlockState();
             if (currentState.hasProperty(ItemMagnetHoseConnectorBlock.LINKED)) {
                 level.setBlock(getBlockPos(), currentState.setValue(ItemMagnetHoseConnectorBlock.LINKED, isLinked), 3);
             }
         }
-        
+
         if (!level.isClientSide) {
             sendData();
             updateOwnActivity();
@@ -119,7 +114,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
             }
         }
     }
-    
+
     public BlockPos getTargetPos() {
         return targetPos;
     }
@@ -133,7 +128,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
             return VSLinkUtil.getWorldTransform(level, worldPosition, facing);
         }
     }
-    
+
     public static Vec3 getWorldPos(Level level, BlockPos pos, boolean isClient) {
         if (level == null) return Vec3.atCenterOf(pos);
         if (isClient) {
@@ -146,12 +141,6 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
     @Override
     public void onSpeedChanged(float prevSpeed) {
         super.onSpeedChanged(prevSpeed);
-        if (level != null && !level.isClientSide) {
-            updateOwnActivity();
-            if (targetPos != null && level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetBe) {
-                targetBe.updateOwnActivity();
-            }
-        }
     }
 
     public void updateOwnActivity() {
@@ -181,10 +170,12 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
     public void tick() {
         super.tick();
         if (level.isClientSide) return;
-        
+
+        updateOwnActivity();
+
         BlockState state = getBlockState();
         boolean isPowered = state.getValue(ItemMagnetHoseConnectorBlock.POWERED);
-        
+
         if (targetPos != null) {
             if (scanCooldown-- <= 0) {
                 scanCooldown = 20;
@@ -214,7 +205,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
                     disconnect();
                     return;
                 }
-                
+
                 // 角度チェック
                 double dot = myTransform.direction.dot(targetTransform.direction);
                 if (dot > -0.500) { // 角度が開きすぎた場合
@@ -223,7 +214,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
                 }
             }
         }
-        
+
         if (targetPos == null && !isPowered) {
             if (scanCooldown-- <= 0) {
                 scanCooldown = 20;
@@ -241,21 +232,21 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
             }
         }
     }
-    
+
     private void disconnect() {
         BlockPos oldTarget = targetPos;
         setTargetPos(null);
-        
+
         if (oldTarget != null && level.isLoaded(oldTarget)) {
             if (level.getBlockEntity(oldTarget) instanceof ItemMagnetHoseConnectorBlockEntity targetLink) {
                 targetLink.setTargetPos(null);
             }
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
         }
-        
+
         level.playSound(null, worldPosition, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
     }
-    
+
     private void scanAndConnect() {
         Direction facing = getBlockState().getValue(ItemMagnetHoseConnectorBlock.FACING);
         AABB scanBox = getScanBoxInWorld(level, worldPosition, facing);
@@ -335,43 +326,34 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
     }
 
     @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return itemHandler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        itemHandler.invalidate();
-    }
-
-    @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("Inventory", inventory.serializeNBT());
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        tag.put("Inventory", inventory.serializeNBT(registries));
         if (targetPos != null) {
-            tag.put("TargetPos", NbtUtils.writeBlockPos(targetPos));
+            CompoundTag targetTag = new CompoundTag();
+            targetTag.putInt("x", targetPos.getX());
+            targetTag.putInt("y", targetPos.getY());
+            targetTag.putInt("z", targetPos.getZ());
+            tag.put("TargetPos", targetTag);
         }
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         if (tag.contains("TargetPos")) {
-            targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));
+            CompoundTag targetTag = tag.getCompound("TargetPos");
+            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
         } else {
             targetPos = null;
         }
     }
-    
+
     public ItemStackHandler getInventory() {
         return inventory;
     }
-    
+
     @Override
     public boolean isSpeedRequirementFulfilled() {
         return Math.abs(getSpeed()) >= 32;

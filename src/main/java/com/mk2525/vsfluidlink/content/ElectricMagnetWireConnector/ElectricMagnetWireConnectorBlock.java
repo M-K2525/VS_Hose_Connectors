@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector;
 
 import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
+import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -24,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements IWrenchable {
 
+    public static final MapCodec<ElectricMagnetWireConnectorBlock> CODEC = simpleCodec(ElectricMagnetWireConnectorBlock::new);
+
     public static final DirectionProperty FACING = BlockStateProperties.FACING;
     public static final BooleanProperty POWERED = BlockStateProperties.POWERED;
     public static final BooleanProperty LINKED = ElectricWireConnectorBlock.LINKED;
@@ -34,6 +37,11 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
                 .setValue(FACING, Direction.NORTH)
                 .setValue(POWERED, false)
                 .setValue(LINKED, false));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -88,7 +96,11 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return createTickerHelper(blockEntityType, ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), ElectricMagnetWireConnectorBlockEntity::tick);
+        return (lvl, pos, st, be) -> {
+            if (be instanceof ElectricMagnetWireConnectorBlockEntity magnetBe) {
+                ElectricMagnetWireConnectorBlockEntity.tick(lvl, pos, st, magnetBe);
+            }
+        };
     }
 
     @Override

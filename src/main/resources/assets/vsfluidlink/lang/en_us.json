@@ -20,6 +20,7 @@
 
   "vsfluidlink.message.selection_cleared": "Selection cleared",
   "vsfluidlink.message.first_pos_selected": "First position selected: %s",
+  "vsfluidlink.message.second_pos_selected": "Second position selected and linked: %s",
   "vsfluidlink.message.cannot_link_to_self": "Cannot link to itself",
   "vsfluidlink.message.distance_too_far": "Distance too far",
   "vsfluidlink.message.linked_successfully": "Linked successfully!",

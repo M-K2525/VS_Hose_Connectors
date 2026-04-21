@@ -14,11 +14,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
@@ -52,24 +47,13 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         }
     }
 
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER) {
-            Direction facing = getBlockState().getValue(MagnetHoseConnectorBlock.FACING);
-            if (side == facing.getOpposite()) {
-                return fluidHandler.cast();
-            }
-        }
-        return super.getCapability(cap, side);
-    }
-
     public static void tick(Level level, BlockPos pos, BlockState state, MagnetHoseConnectorBlockEntity blockEntity) {
         if (level.isClientSide) return;
 
         // --- Connection Check (every 20 ticks) ---
         if (blockEntity.checkCooldown-- <= 0) {
             blockEntity.checkCooldown = 20;
-            
+
             boolean isPowered = state.getValue(MagnetHoseConnectorBlock.POWERED);
             BlockPos currentTarget = blockEntity.getTargetPos();
 
@@ -87,7 +71,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
                     disconnect(level, pos, blockEntity);
                     return;
                 }
-                
+
                 // 角度チェック
                 Direction myFacing = state.getValue(MagnetHoseConnectorBlock.FACING);
                 BlockState targetState = targetBe.getBlockState();
@@ -96,12 +80,12 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
                     return;
                 }
                 Direction targetFacing = targetState.getValue(MagnetHoseConnectorBlock.FACING);
-                
+
                 VSLinkUtil.WorldTransform myTransform = VSLinkUtil.getWorldTransform(level, pos, myFacing);
                 VSLinkUtil.WorldTransform targetTransform = VSLinkUtil.getWorldTransform(level, currentTarget, targetFacing);
-                
+
                 double dot = myTransform.direction.dot(targetTransform.direction);
-                
+
                 if (dot > -0.500) { // 角度が開きすぎた場合
                     disconnect(level, pos, blockEntity);
                     return;
@@ -118,7 +102,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
 
                         Vec3 targetWorldPos = VSLinkUtil.getWorldPos(level, scanPos);
                         if (!scanBox.contains(targetWorldPos)) continue;
-                        
+
                         if (isConnectorAt(level, pos, facing, scanPos)) {
                             blockEntity.setTargetPos(scanPos);
                             break; // Found a target, stop scanning
@@ -127,7 +111,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
                 }
             }
         }
-        
+
         // --- Fluid Transfer (every tick) ---
         if (blockEntity.getTargetPos() != null) {
             // This check is now also in HoseConnectorBlockEntity.tick, but it's cheap
@@ -136,13 +120,13 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
             }
         }
     }
-    
+
     private static boolean isConnectorAt(Level level, BlockPos selfPos, Direction selfFacing, BlockPos scanPos) {
         if (!level.isLoaded(scanPos)) return false;
-        
+
         BlockEntity be = level.getBlockEntity(scanPos);
         if (!(be instanceof MagnetHoseConnectorBlockEntity targetConnector)) return false;
-        
+
         if (targetConnector.getTargetPos() != null) return false;
 
         BlockState scanState = be.getBlockState();
@@ -165,13 +149,13 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         if (areFacingsOppositeInWorld(level, selfPos, selfFacing, scanPos, scanState.getValue(MagnetHoseConnectorBlock.FACING))) {
             level.playSound(null, selfPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
             level.playSound(null, scanPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
-            
+
             targetConnector.setTargetPos(selfPos);
             return true;
         }
         return false;
     }
-    
+
     private static AABB getScanBoxInWorld(Level level, BlockPos pos, Direction facing) {
         int scanDist = VsFluidLinkConfig.SERVER.magnetScanDistance.get();
         int scanRadius = VsFluidLinkConfig.SERVER.magnetScanRadius.get();
@@ -191,14 +175,14 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
     private static boolean areFacingsOppositeInWorld(Level level, BlockPos pos1, Direction facing1, BlockPos pos2, Direction facing2) {
         VSLinkUtil.WorldTransform transform1 = VSLinkUtil.getWorldTransform(level, pos1, facing1);
         VSLinkUtil.WorldTransform transform2 = VSLinkUtil.getWorldTransform(level, pos2, facing2);
-        
+
         return transform1.direction.dot(transform2.direction) < -0.890; // approx 170 degrees
     }
 
     private static void disconnect(Level level, BlockPos pos, MagnetHoseConnectorBlockEntity blockEntity) {
         BlockPos oldTarget = blockEntity.getTargetPos();
         blockEntity.setTargetPos(null);
-        
+
         if (oldTarget != null && level.isLoaded(oldTarget)) {
             BlockEntity targetBe = level.getBlockEntity(oldTarget);
             if (targetBe instanceof MagnetHoseConnectorBlockEntity targetLinkBe) {

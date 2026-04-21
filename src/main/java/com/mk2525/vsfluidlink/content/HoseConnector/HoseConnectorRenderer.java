@@ -1,13 +1,12 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
+import com.mojang.blaze3d.vertex.*;
 import com.mk2525.vsfluidlink.registry.ModBlocks;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
@@ -17,7 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -28,7 +27,7 @@ import java.lang.reflect.Method;
 
 public class HoseConnectorRenderer implements BlockEntityRenderer<HoseConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation TEXTURE = new ResourceLocation("create", "textures/block/hose_pulley_coil_scroll.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("create", "textures/block/hose_pulley_coil_scroll.png");
     private static final float WIDTH = 0.4f;
     private final BlockRenderDispatcher blockRenderer;
 
@@ -60,6 +59,7 @@ public class HoseConnectorRenderer implements BlockEntityRenderer<HoseConnectorB
 
         Vec3 localDiff = diff;
         try {
+            if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
             Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
             Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
             Object ship = getShipManagingPos.invoke(null, be.getLevel(), selfPos);
@@ -91,7 +91,7 @@ public class HoseConnectorRenderer implements BlockEntityRenderer<HoseConnectorB
                 localDiff = new Vec3(lx, ly, lz);
             }
         } catch (Exception e) {
-            // エラー無視
+            // 郢ｧ・ｨ郢晢ｽｩ郢晢ｽｼ霎滂ｽ｡髫輔・
         }
 
         poseStack.translate(0.5, 0.5, 0.5);
@@ -182,13 +182,12 @@ public class HoseConnectorRenderer implements BlockEntityRenderer<HoseConnectorB
     }
 
     private void vertex(VertexConsumer builder, Matrix4f m, Vector3f pos, float u, float v, int light) {
-        builder.vertex(m, pos.x(), pos.y(), pos.z())
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 1, 0)
-                .endVertex();
+        builder.addVertex(m, pos.x(), pos.y(), pos.z())
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 1, 0);
     }
     
     private int brightestLight(Level level, BlockPos pos1, BlockPos pos2) {

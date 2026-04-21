@@ -7,9 +7,12 @@ import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+
+import java.util.List;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
@@ -17,18 +20,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.IItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.slf4j.Logger;
 
 public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
+    }
     private static final Logger LOGGER = LogUtils.getLogger();
-    
+
     protected final ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -39,8 +41,6 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         }
     };
 
-    protected final LazyOptional<IItemHandler> itemHandler = LazyOptional.of(() -> inventory);
-    
     private BlockPos targetPos;
     private int checkCooldown = 0;
 
@@ -59,26 +59,29 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
 
     @Override
     public AABB getRenderBoundingBox() {
-        return INFINITE_EXTENT_AABB;
+        return new AABB(
+            getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+            getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + 1
+        );
     }
 
     public void setTargetPos(BlockPos targetPos) {
         if (this.level == null) return;
-        
+
         BlockPos oldTarget = this.targetPos;
         boolean wasLinked = oldTarget != null;
         boolean isLinked = targetPos != null;
-        
+
         this.targetPos = targetPos;
         setChanged();
-        
+
         if (wasLinked != isLinked) {
             BlockState currentState = getBlockState();
             if (currentState.hasProperty(ItemHoseConnectorBlock.LINKED)) {
                 level.setBlock(getBlockPos(), currentState.setValue(ItemHoseConnectorBlock.LINKED, isLinked), 3);
             }
         }
-        
+
         if (!level.isClientSide) {
             sendData();
             updateOwnActivity();
@@ -94,7 +97,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
             }
         }
     }
-    
+
     public BlockPos getTargetPos() {
         return targetPos;
     }
@@ -102,12 +105,6 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     @Override
     public void onSpeedChanged(float prevSpeed) {
         super.onSpeedChanged(prevSpeed);
-        if (level != null && !level.isClientSide) {
-            updateOwnActivity();
-            if (targetPos != null && level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
-                targetBe.updateOwnActivity();
-            }
-        }
     }
 
     public void updateOwnActivity() {
@@ -137,6 +134,8 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     public void tick() {
         super.tick();
         if (level.isClientSide) return;
+
+        updateOwnActivity();
 
         if (targetPos != null) {
             if (checkCooldown-- <= 0) {
@@ -178,44 +177,35 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         }
     }
 
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ITEM_HANDLER) {
-            return itemHandler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        itemHandler.invalidate();
-    }
-
-    @Override
-    protected void write(CompoundTag tag, boolean clientPacket) {
-        super.write(tag, clientPacket);
-        tag.put("Inventory", inventory.serializeNBT());
+   @Override
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        tag.put("Inventory", inventory.serializeNBT(registries));
         if (targetPos != null) {
-            tag.put("TargetPos", NbtUtils.writeBlockPos(targetPos));
+            CompoundTag targetTag = new CompoundTag();
+            targetTag.putInt("x", targetPos.getX());
+            targetTag.putInt("y", targetPos.getY());
+            targetTag.putInt("z", targetPos.getZ());
+            tag.put("TargetPos", targetTag);
         }
     }
 
     @Override
-    protected void read(CompoundTag tag, boolean clientPacket) {
-        super.read(tag, clientPacket);
-        inventory.deserializeNBT(tag.getCompound("Inventory"));
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         if (tag.contains("TargetPos")) {
-            targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));
+            CompoundTag targetTag = tag.getCompound("TargetPos");
+            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
         } else {
             targetPos = null;
         }
     }
-    
+
     public ItemStackHandler getInventory() {
         return inventory;
     }
-    
+
     @Override
     public boolean isSpeedRequirementFulfilled() {
         return Math.abs(getSpeed()) >= 32;

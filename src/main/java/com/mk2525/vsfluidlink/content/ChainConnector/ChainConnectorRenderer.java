@@ -8,8 +8,8 @@ import com.mojang.logging.LogUtils;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import com.simibubi.create.content.kinetics.simpleRelays.ShaftBlock;
+import com.simibubi.create.foundation.render.BlockEntityRenderHelper;
 import net.createmod.catnip.render.CachedBuffers;
-import net.createmod.catnip.render.SuperByteBuffer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
 
 public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation TEXTURE = new ResourceLocation("minecraft", "textures/block/chain.png");
+    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/block/chain.png");
     private final BlockRenderDispatcher blockRenderer;
 
     public ChainConnectorRenderer(BlockEntityRendererProvider.Context context) {
@@ -44,12 +44,7 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
     @Override
     protected void renderSafe(ChainConnectorBlockEntity be, float partialTicks, PoseStack poseStack, MultiBufferSource bufferSource, int light, int overlay) {
         if (VSLinkUtil.isVirtualWorld(be.getLevel())) return;
-        // Render shaft
-        BlockState shaftState = getRenderedBlockState(be);
-        if (shaftState != null) {
-            SuperByteBuffer superByteBuffer = CachedBuffers.block(shaftState);
-            standardKineticRotationTransform(superByteBuffer, be, light).renderInto(poseStack, bufferSource.getBuffer(RenderType.solid()));
-        }
+        renderShaft(be, poseStack, bufferSource, light);
         
         BlockPos selfPos = be.getBlockPos();
         BlockPos targetPos = be.getTargetPos();
@@ -72,6 +67,7 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
 
         Vec3 localDiff = diff;
         try {
+            if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
             Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
             Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
             Object ship = getShipManagingPos.invoke(null, be.getLevel(), selfPos);
@@ -110,12 +106,12 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
         
         int brightestLight = brightestLight(be.getLevel(), selfPos, targetPos);
         
-        // アニメーション用のオフセット計算
+        // 郢ｧ・｢郢昜ｹ斟鍋ｹ晢ｽｼ郢ｧ・ｷ郢晢ｽｧ郢晢ｽｳ騾包ｽｨ邵ｺ・ｮ郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ髫ｪ閧ｲ・ｮ繝ｻ
         float speed = be.getSpeed();
         float time = be.getLevel().getGameTime() + partialTicks;
-        float offset = (time * speed / 20.0f) / 16.0f; // 速度に応じて調整
+        float offset = (time * speed / 20.0f) / 16.0f; // 鬨ｾ貅ｷ・ｺ・ｦ邵ｺ・ｫ陟｢諛環ｧ邵ｺ・ｦ髫ｱ・ｿ隰ｨ・ｴ
         
-        // North/South (Z軸) 方向のときは回転方向の関係で逆になるため反転
+        // North/South (Z髴・ｽｸ) 隴・ｽｹ陷ｷ莉｣繝ｻ邵ｺ・ｨ邵ｺ髦ｪ繝ｻ陜玲ｫ・ｽｻ・｢隴・ｽｹ陷ｷ莉｣繝ｻ鬮｢・｢闖ｫ繧・帝ｨｾ繝ｻ竊鍋ｸｺ・ｪ郢ｧ荵昶螺郢ｧ竏晄ｸ夐怕・｢
         if (be.getBlockState().getValue(ChainConnectorBlock.FACING).getAxis() == Direction.Axis.Z) {
             offset *= -1;
         }
@@ -128,6 +124,11 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
     @Override
     protected BlockState getRenderedBlockState(ChainConnectorBlockEntity be) {
         return AllBlocks.SHAFT.get().defaultBlockState().setValue(ShaftBlock.AXIS, getRotationAxisOf(be));
+    }
+
+    private void renderShaft(ChainConnectorBlockEntity be, PoseStack poseStack, MultiBufferSource bufferSource, int light) {
+        BlockState shaftState = getRenderedBlockState(be);
+        renderRotatingBuffer(be, CachedBuffers.block(KINETIC_BLOCK, shaftState), poseStack, bufferSource.getBuffer(RenderType.solid()), light);
     }
     
     private double getField(Object obj, String fieldName) throws NoSuchFieldException, IllegalAccessException {
@@ -153,25 +154,25 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
         }
         up = new Vector3f(right).cross(direction).normalize();
 
-        // オフセット計算 (3ドット = 3/16)
+        // 郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ髫ｪ閧ｲ・ｮ繝ｻ(3郢晏ｳｨ繝｣郢昴・= 3/16)
         float offsetDist = 3.0f / 16.0f;
         Vector3f offsetUp = new Vector3f(up).mul(offsetDist);
         Vector3f offsetDown = new Vector3f(up).mul(-offsetDist);
 
         Matrix4f m = ms.last().pose();
 
-        // 上のチェーン (一方向に動く)
+        // 闕ｳ鄙ｫ繝ｻ郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ (闕ｳﾂ隴・ｽｹ陷ｷ莉｣竊楢恪霈費ｿ･)
         renderChain(builder, m, direction, up, right, offsetUp, length, light, textureOffset);
-        // 下のチェーン (逆方向に動く)
+        // 闕ｳ荵昴・郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ (鬨ｾ繝ｻ蟀ｿ陷ｷ莉｣竊楢恪霈費ｿ･)
         renderChain(builder, m, direction, up, right, offsetDown, length, light, -textureOffset);
     }
 
     private void renderChain(VertexConsumer builder, Matrix4f m, Vector3f direction, Vector3f up, Vector3f right, Vector3f offset, float length, int light, float vOffset) {
-        float width = 3.0f / 16.0f; // チェーンの幅 (3ドット)
+        float width = 3.0f / 16.0f; // 郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ邵ｺ・ｮ陝ｷ繝ｻ(3郢晏ｳｨ繝｣郢昴・
         float r = width / 2.0f;
 
-        Vector3f cross1 = new Vector3f(up).add(right).normalize().mul(r); // 45度
-        Vector3f cross2 = new Vector3f(up).sub(right).normalize().mul(r); // -45度
+        Vector3f cross1 = new Vector3f(up).add(right).normalize().mul(r); // 45陟趣ｽｦ
+        Vector3f cross2 = new Vector3f(up).sub(right).normalize().mul(r); // -45陟趣ｽｦ
 
         // Plane 1 (UV: 0,0 -> 3,16)
         Vector3f p1_start = new Vector3f(offset).sub(cross1);
@@ -191,11 +192,11 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
         float uMin2 = 3.0f / 16.0f;
         float uMax2 = 6.0f / 16.0f;
 
-        // V座標のアニメーション
+        // V陟趣ｽｧ隶灘生繝ｻ郢ｧ・｢郢昜ｹ斟鍋ｹ晢ｽｼ郢ｧ・ｷ郢晢ｽｧ郢晢ｽｳ
         float vMin = vOffset;
         float vMax = length + vOffset;
 
-        // 両面描画
+        // 闕ｳ・｡鬮ｱ・｢隰蜀怜愛
         quad(builder, m, p1_start, p1_end, p2_end, p2_start, uMin1, uMax1, vMin, vMax, light);
         quad(builder, m, p2_start, p2_end, p1_end, p1_start, uMin1, uMax1, vMin, vMax, light);
 
@@ -211,13 +212,12 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
     }
 
     private void vertex(VertexConsumer builder, Matrix4f m, Vector3f pos, float u, float v, int light) {
-        builder.vertex(m, pos.x(), pos.y(), pos.z())
-                .color(255, 255, 255, 255)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(0, 1, 0)
-                .endVertex();
+        builder.addVertex(m, pos.x(), pos.y(), pos.z())
+                .setColor(255, 255, 255, 255)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(0, 1, 0);
     }
     
     private int brightestLight(Level level, BlockPos pos1, BlockPos pos2) {

@@ -5,8 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
+import net.neoforged.fml.ModList;
 import org.joml.Vector3d;
 import org.slf4j.Logger;
 
@@ -20,21 +19,30 @@ public class VSLinkUtil {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Set<String> printedMethods = new HashSet<>();
     private static final Set<String> printedQueryableMethods = new HashSet<>();
+    private static Boolean valkyrienSkiesLoaded;
+
+    public static boolean isValkyrienSkiesLoaded() {
+        if (valkyrienSkiesLoaded == null) {
+            valkyrienSkiesLoaded = ModList.get().isLoaded("valkyrienskies");
+        }
+        return valkyrienSkiesLoaded;
+    }
 
     private static Object getShipManagingPos(Level level, BlockPos pos) {
         if (level == null) return null;
-        
+        if (!isValkyrienSkiesLoaded()) return null;
+
         try {
             // 1. Try getShipObjectWorld
             Method getShipObjectWorld = level.getClass().getMethod("getShipObjectWorld");
             Object shipWorld = getShipObjectWorld.invoke(level);
-            
+
             if (shipWorld != null) {
                 // Try getQueryableShipData
                 try {
                     Method getQueryableShipData = shipWorld.getClass().getMethod("getQueryableShipData");
                     Object queryableShipData = getQueryableShipData.invoke(shipWorld);
-                    
+
                     if (queryableShipData != null) {
                          int chunkX = pos.getX() >> 4;
                          int chunkZ = pos.getZ() >> 4;
@@ -69,7 +77,7 @@ public class VSLinkUtil {
                     try {
                         Method getLoadedShips = shipWorld.getClass().getMethod("getLoadedShips");
                         Object loadedShips = getLoadedShips.invoke(shipWorld);
-                        
+
                         // Try getShipManagingPos on loadedShips
                         Method getShipManagingPosLoaded = loadedShips.getClass().getMethod("getShipManagingPos", BlockPos.class);
                         return getShipManagingPosLoaded.invoke(loadedShips, pos);
@@ -90,7 +98,7 @@ public class VSLinkUtil {
         } catch (Exception e) {
             LOGGER.error("[VS Fluid Link] Failed to get ship for pos: " + pos, e);
         }
-        
+
         // Fallback to VSGameUtilsKt only on client side
         if (level.isClientSide) {
             try {
@@ -101,11 +109,13 @@ public class VSLinkUtil {
                 // ignore
             }
         }
-        
+
         return null;
     }
 
     public static Long getShipId(Level level, BlockPos pos) {
+        if (!isValkyrienSkiesLoaded()) return null;
+
         Object ship = getShipManagingPos(level, pos);
         if (ship != null) {
             try {
@@ -119,6 +129,8 @@ public class VSLinkUtil {
     }
 
     public static Vec3 getWorldPos(Level level, BlockPos pos) {
+        if (!isValkyrienSkiesLoaded()) return Vec3.atCenterOf(pos);
+
         Object ship = getShipManagingPos(level, pos);
         if (ship != null) {
             try {
@@ -141,7 +153,7 @@ public class VSLinkUtil {
         }
         return Vec3.atCenterOf(pos);
     }
-    
+
     public static boolean isVirtualWorld(Level level) {
         if (level == null) return false;
         String className = level.getClass().getName();
@@ -159,9 +171,9 @@ public class VSLinkUtil {
     }
 
     public static WorldTransform getWorldTransform(Level level, BlockPos pos, Direction facing) {
-        Object ship = getShipManagingPos(level, pos);
         Vector3d posInShip = new Vector3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
         Vector3d dirInShip = new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ());
+        Object ship = getShipManagingPos(level, pos);
 
         if (ship != null) {
             try {
@@ -188,9 +200,10 @@ public class VSLinkUtil {
         );
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static class Client {
         public static Vec3 getRenderWorldPos(Level level, BlockPos pos) {
+            if (!isValkyrienSkiesLoaded()) return Vec3.atCenterOf(pos);
+
             Object ship = getShipManagingPos(level, pos);
             if (ship != null) {
                 try {
@@ -215,9 +228,9 @@ public class VSLinkUtil {
         }
 
         public static WorldTransform getRenderWorldTransform(Level level, BlockPos pos, Direction facing) {
-            Object ship = getShipManagingPos(level, pos);
             Vector3d posInShip = new Vector3d(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5);
             Vector3d dirInShip = new Vector3d(facing.getStepX(), facing.getStepY(), facing.getStepZ());
+            Object ship = getShipManagingPos(level, pos);
 
             if (ship != null) {
                 try {

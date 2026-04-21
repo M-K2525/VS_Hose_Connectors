@@ -1,26 +1,26 @@
 package com.mk2525.vsfluidlink;
 
-import net.minecraftforge.common.ForgeConfigSpec;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
 public class VsFluidLinkConfig {
     public static final ServerConfig SERVER;
-    public static final ForgeConfigSpec SERVER_SPEC;
+    public static final ModConfigSpec SERVER_SPEC;
 
     static {
-        final Pair<ServerConfig, ForgeConfigSpec> specPair = new ForgeConfigSpec.Builder().configure(ServerConfig::new);
+        final Pair<ServerConfig, ModConfigSpec> specPair = new ModConfigSpec.Builder().configure(ServerConfig::new);
         SERVER_SPEC = specPair.getRight();
         SERVER = specPair.getLeft();
     }
 
     public static class ServerConfig {
-        public final ForgeConfigSpec.DoubleValue maxLinkDistance;
-        public final ForgeConfigSpec.IntValue magnetScanDistance;
-        public final ForgeConfigSpec.IntValue magnetScanRadius;
-        public final ForgeConfigSpec.BooleanValue restrictWorldToWorldConnection;
-        public final ForgeConfigSpec.BooleanValue restrictIntraShipConnection;
+        public final ModConfigSpec.DoubleValue maxLinkDistance;
+        public final ModConfigSpec.IntValue magnetScanDistance;
+        public final ModConfigSpec.IntValue magnetScanRadius;
+        public final ModConfigSpec.BooleanValue restrictWorldToWorldConnection;
+        public final ModConfigSpec.BooleanValue restrictIntraShipConnection;
 
-        public ServerConfig(ForgeConfigSpec.Builder builder) {
+        public ServerConfig(ModConfigSpec.Builder builder) {
             builder.push("general");
 
             maxLinkDistance = builder

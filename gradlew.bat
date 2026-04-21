@@ -37,28 +37,20 @@ for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
 
 @rem Find java.exe
-if defined JAVA_HOME goto findJavaFromJavaHome
+@rem Force use JDK 21 as previously configured
+set JAVA_HOME="C:\Program Files\Java\jdk-21.0.10"
 
+set JAVA_EXE=%JAVA_HOME%\bin\java.exe
+if exist "%JAVA_EXE%" goto execute
+
+@rem Fallback if fixed path doesn't exist
+if defined JAVA_HOME_ENV set JAVA_HOME=%JAVA_HOME_ENV%
 set JAVA_EXE=java.exe
 %JAVA_EXE% -version >NUL 2>&1
 if %ERRORLEVEL% equ 0 goto execute
 
 echo.
 echo ERROR: JAVA_HOME is not set and no 'java' command could be found in your PATH.
-echo.
-echo Please set the JAVA_HOME variable in your environment to match the
-echo location of your Java installation.
-
-goto fail
-
-:findJavaFromJavaHome
-set JAVA_HOME=%JAVA_HOME:"=%
-set JAVA_EXE=%JAVA_HOME%/bin/java.exe
-
-if exist "%JAVA_EXE%" goto execute
-
-echo.
-echo ERROR: JAVA_HOME is set to an invalid directory: %JAVA_HOME%
 echo.
 echo Please set the JAVA_HOME variable in your environment to match the
 echo location of your Java installation.

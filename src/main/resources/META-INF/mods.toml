@@ -36,7 +36,7 @@ Better transport between Valkyrien Skies ships.
 
 [[dependencies.vsfluidlink]]
     modId="valkyrienskies"
-    mandatory=true
+    mandatory=false
     versionRange="[2.0.0,)"
     ordering="AFTER"
     side="BOTH"

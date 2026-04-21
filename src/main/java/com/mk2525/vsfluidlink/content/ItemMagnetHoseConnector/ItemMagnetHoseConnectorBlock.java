@@ -4,6 +4,7 @@ import com.mk2525.vsfluidlink.content.ItemHoseConnecotor.ItemHoseConnectorBlock;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
+import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -112,7 +113,7 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
     }
     
     @Override
-    public SpeedLevel getMinimumRequiredSpeedLevel() {
-        return SpeedLevel.MEDIUM;
+    public IRotate.SpeedLevel getMinimumRequiredSpeedLevel() {
+        return IRotate.SpeedLevel.MEDIUM;
     }
 }

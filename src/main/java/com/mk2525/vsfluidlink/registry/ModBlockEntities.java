@@ -9,37 +9,37 @@ import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnecto
 import com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector.ElectricMagnetWireConnectorBlockEntity;
 import com.mk2525.vsfluidlink.content.ChainConnector.ChainConnectorBlockEntity;
 import com.mk2525.vsfluidlink.content.MagnetChainConnector.MagnetChainConnectorBlockEntity;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.bus.api.IEventBus;
 
 public class ModBlockEntities {
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, VsFluidLinkMod.MOD_ID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, VsFluidLinkMod.MOD_ID);
 
-    public static final RegistryObject<BlockEntityType<HoseConnectorBlockEntity>> HOSE_CONNECTOR = BLOCK_ENTITIES.register("hose_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<HoseConnectorBlockEntity>> HOSE_CONNECTOR = BLOCK_ENTITIES.register("hose_connector",
             () -> BlockEntityType.Builder.of(HoseConnectorBlockEntity::new, ModBlocks.HOSE_CONNECTOR.get()).build(null));
-            
-    public static final RegistryObject<BlockEntityType<MagnetHoseConnectorBlockEntity>> MAGNET_HOSE_CONNECTOR = BLOCK_ENTITIES.register("magnet_hose_connector",
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MagnetHoseConnectorBlockEntity>> MAGNET_HOSE_CONNECTOR = BLOCK_ENTITIES.register("magnet_hose_connector",
             () -> BlockEntityType.Builder.of(MagnetHoseConnectorBlockEntity::new, ModBlocks.MAGNET_HOSE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ItemHoseConnectorBlockEntity>> ITEM_HOSE_CONNECTOR = BLOCK_ENTITIES.register("item_hose_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ItemHoseConnectorBlockEntity>> ITEM_HOSE_CONNECTOR = BLOCK_ENTITIES.register("item_hose_connector",
             () -> BlockEntityType.Builder.of(ItemHoseConnectorBlockEntity::new, ModBlocks.ITEM_HOSE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ItemMagnetHoseConnectorBlockEntity>> ITEM_MAGNET_HOSE_CONNECTOR = BLOCK_ENTITIES.register("item_magnet_hose_connector",
-            () -> BlockEntityType.Builder .of(ItemMagnetHoseConnectorBlockEntity::new, ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get()).build(null));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ItemMagnetHoseConnectorBlockEntity>> ITEM_MAGNET_HOSE_CONNECTOR = BLOCK_ENTITIES.register("item_magnet_hose_connector",
+            () -> BlockEntityType.Builder.of(ItemMagnetHoseConnectorBlockEntity::new, ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ElectricWireConnectorBlockEntity>> ELECTRIC_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_wire_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricWireConnectorBlockEntity>> ELECTRIC_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_wire_connector",
             () -> BlockEntityType.Builder.of(ElectricWireConnectorBlockEntity::new, ModBlocks.ELECTRIC_WIRE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ElectricMagnetWireConnectorBlockEntity>> ELECTRIC_MAGNET_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_magnet_wire_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElectricMagnetWireConnectorBlockEntity>> ELECTRIC_MAGNET_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_magnet_wire_connector",
             () -> BlockEntityType.Builder.of(ElectricMagnetWireConnectorBlockEntity::new, ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<ChainConnectorBlockEntity>> CHAIN_CONNECTOR = BLOCK_ENTITIES.register("chain_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChainConnectorBlockEntity>> CHAIN_CONNECTOR = BLOCK_ENTITIES.register("chain_connector",
             () -> BlockEntityType.Builder.of(ChainConnectorBlockEntity::new, ModBlocks.CHAIN_CONNECTOR.get()).build(null));
 
-    public static final RegistryObject<BlockEntityType<MagnetChainConnectorBlockEntity>> MAGNET_CHAIN_CONNECTOR = BLOCK_ENTITIES.register("magnet_chain_connector",
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MagnetChainConnectorBlockEntity>> MAGNET_CHAIN_CONNECTOR = BLOCK_ENTITIES.register("magnet_chain_connector",
             () -> BlockEntityType.Builder.of(MagnetChainConnectorBlockEntity::new, ModBlocks.MAGNET_CHAIN_CONNECTOR.get()).build(null));
 
     public static void register(IEventBus eventBus) {

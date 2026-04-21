@@ -5,9 +5,8 @@ import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
@@ -19,13 +18,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.templates.FluidTank;
-import org.jetbrains.annotations.NotNull;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
@@ -41,8 +35,6 @@ public class HoseConnectorBlockEntity extends BlockEntity {
         }
     };
 
-    protected final LazyOptional<IFluidHandler> fluidHandler = LazyOptional.of(() -> tank);
-    
     private BlockPos targetPos;
     private long lastTransferTick = -1;
 
@@ -54,55 +46,72 @@ public class HoseConnectorBlockEntity extends BlockEntity {
         this(ModBlockEntities.HOSE_CONNECTOR.get(), pos, state);
     }
 
-    @Override
     public AABB getRenderBoundingBox() {
-        return INFINITE_EXTENT_AABB;
+        return new AABB(
+            getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),
+            getBlockPos().getX() + 1, getBlockPos().getY() + 1, getBlockPos().getZ() + 1
+        );
     }
 
     public void setTargetPos(BlockPos targetPos) {
         if (this.level == null) return;
-        
+
         boolean wasLinked = this.targetPos != null;
         boolean isLinked = targetPos != null;
-        
+
         this.targetPos = targetPos;
         setChanged();
-        
+
         if (wasLinked != isLinked) {
             BlockState currentState = getBlockState();
             if (currentState.hasProperty(HoseConnectorBlock.LINKED)) {
                 level.setBlock(getBlockPos(), currentState.setValue(HoseConnectorBlock.LINKED, isLinked), 3);
             }
         }
-        
+
         if (!level.isClientSide) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         }
     }
-    
+
     public BlockPos getTargetPos() {
         return targetPos;
     }
 
     @Override
-    public CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        tank.readFromNBT(provider, tag.getCompound("Tank"));
+        if (tag.contains("TargetPos")) {
+            CompoundTag targetTag = tag.getCompound("TargetPos");
+            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
+        } else {
+            targetPos = null;
+        }
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag) {
-        load(tag);
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        tag.put("Tank", tank.writeToNBT(provider, new CompoundTag()));
+        if (targetPos != null) {
+            CompoundTag targetTag = new CompoundTag();
+            targetTag.putInt("x", targetPos.getX());
+            targetTag.putInt("y", targetPos.getY());
+            targetTag.putInt("z", targetPos.getZ());
+            tag.put("TargetPos", targetTag);
+        }
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+        CompoundTag tag = super.getUpdateTag(provider);
+        saveAdditional(tag, provider);
+        return tag;
     }
 
     @Nullable
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    public void onDataPacket(net.minecraft.network.Connection net, ClientboundBlockEntityDataPacket pkt) {
-        handleUpdateTag(pkt.getTag());
     }
 
     public static Vec3 getWorldPos(Level level, BlockPos pos, boolean isClient) {
@@ -135,13 +144,13 @@ public class HoseConnectorBlockEntity extends BlockEntity {
             // --- Distance Check ---
             Vec3 myPos = getWorldPos(level, pos, false);
             Vec3 targetPosVec = getWorldPos(level, blockEntity.targetPos, false);
-            
+
             double maxDist = VsFluidLinkConfig.SERVER.maxLinkDistance.get();
             if (myPos.distanceToSqr(targetPosVec) > maxDist * maxDist) {
                 BlockPos oldTarget = blockEntity.targetPos;
                 blockEntity.setTargetPos(null);
                 targetLink.setTargetPos(null);
-                
+
                 level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
                 blockEntity.setChanged();
                 return;
@@ -167,7 +176,7 @@ public class HoseConnectorBlockEntity extends BlockEntity {
             if (myTank.isEmpty() && otherTank.isEmpty()) return;
 
             boolean canTransfer = myTank.isEmpty() || otherTank.isEmpty() || myTank.getFluid().isFluidEqual(otherTank.getFluid());
-            
+
             if (canTransfer) {
                 FluidStack fluid = myTank.isEmpty() ? otherTank.getFluid() : myTank.getFluid();
                 int totalAmount = myTank.getFluidAmount() + otherTank.getFluidAmount();
@@ -188,41 +197,7 @@ public class HoseConnectorBlockEntity extends BlockEntity {
         }
     }
 
-    @Override
-    public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.DOWN) {
-            return fluidHandler.cast();
-        }
-        return super.getCapability(cap, side);
-    }
-
-    @Override
-    public void invalidateCaps() {
-        super.invalidateCaps();
-        fluidHandler.invalidate();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag) {
-        super.saveAdditional(tag);
-        tag.put("Tank", tank.writeToNBT(new CompoundTag()));
-        if (targetPos != null) {
-            tag.put("TargetPos", NbtUtils.writeBlockPos(targetPos));
-        }
-    }
-
-    @Override
-    public void load(CompoundTag tag) {
-        super.load(tag);
-        tank.readFromNBT(tag.getCompound("Tank"));
-        if (tag.contains("TargetPos")) {
-            targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));
-        } else {
-            targetPos = null;
-        }
-    }
-    
-    public FluidTank getTank() {
+   public FluidTank getTank() {
         return tank;
     }
 }
