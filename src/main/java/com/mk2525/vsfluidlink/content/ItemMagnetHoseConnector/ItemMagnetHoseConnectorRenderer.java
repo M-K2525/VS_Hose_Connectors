@@ -58,7 +58,7 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
             return;
         }
         
-        // 闕ｳ・ｭ陟｢繝ｻ繝ｻ郢晢ｽｯ郢晢ｽｼ郢晢ｽｫ郢晉甥・ｺ・ｧ隶灘生・定愾髢・ｾ繝ｻ
+        // 髣包ｽｳ繝ｻ・ｭ髯滂ｽ｢郢晢ｽｻ郢晢ｽｻ驛｢譎｢・ｽ・ｯ驛｢譎｢・ｽ・ｼ驛｢譎｢・ｽ・ｫ驛｢譎臥櫨繝ｻ・ｺ繝ｻ・ｧ髫ｶ轣倡函繝ｻ螳壽╂鬮｢ﾂ繝ｻ・ｾ郢晢ｽｻ
         Vec3 startCenterPos = ItemMagnetHoseConnectorBlockEntity.getWorldPos(be.getLevel(), selfPos, true);
         Vec3 endCenterPos = ItemMagnetHoseConnectorBlockEntity.getWorldPos(be.getLevel(), targetPos, true);
         Vec3 diff = endCenterPos.subtract(startCenterPos);
@@ -67,40 +67,21 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
 
         poseStack.pushPose();
 
-        // --- 郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ邵ｺ・ｨ郢晏生縺醍ｹ晏現ﾎ晉ｸｺ・ｮ髫ｪ閧ｲ・ｮ繝ｻ---
+        // --- 驛｢・ｧ繝ｻ・ｪ驛｢譎・ｽｼ譁絶落驛｢譏ｴ繝ｻ郢晢ｽｨ驍ｵ・ｺ繝ｻ・ｨ驛｢譎冗函邵ｺ驢搾ｽｹ譎冗樟・取刮・ｸ・ｺ繝ｻ・ｮ鬮ｫ・ｪ髢ｧ・ｲ繝ｻ・ｮ郢晢ｽｻ---
         BlockState startState = be.getBlockState();
         BlockState endState = be.getLevel().getBlockState(targetPos);
 
-        Vec3 localDiff = diff;
+        Vec3 localDiff = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, diff);
         Vector3f startOffset = getLocalOffset(startState);
         Vector3f endOffset = new Vector3f();
 
-        try {
-            Object selfShip = getShipAt(be.getLevel(), selfPos);
-            Object targetShip = getShipAt(be.getLevel(), targetPos);
-
-            // 1. 郢晢ｽｯ郢晢ｽｼ郢晢ｽｫ郢晉甥・ｷ・ｮ陋ｻ繝ｻ繝ｻ郢ｧ・ｯ郢晏現ﾎ晉ｹｧ蛛ｵﾂ竏晢ｽｧ迢励○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢晢ｽｭ郢晢ｽｼ郢ｧ・ｫ郢晢ｽｫ陟趣ｽｧ隶灘衷・ｳ・ｻ邵ｺ・ｫ陞溽判驪､
-            if (selfShip != null) {
-                localDiff = transformVector(diff, selfShip, true); // worldToShip
-            }
-
-            // 2. 驍ｨ繧峨○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ郢ｧ螳夲ｽｨ閧ｲ・ｮ蜉ｱ・邵ｲ竏晢ｽｧ迢励○郢晄じﾎ溽ｹ昴・縺醍ｸｺ・ｮ郢晢ｽｭ郢晢ｽｼ郢ｧ・ｫ郢晢ｽｫ陟趣ｽｧ隶灘衷・ｳ・ｻ邵ｺ・ｫ陞溽判驪､
-            if (endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
-                Vec3 targetOffsetWorld = getOffsetFor(be.getLevel(), targetPos, endState);
-                if (selfShip != null) {
-                    endOffset = transformVector(targetOffsetWorld, selfShip, true).toVector3f(); // worldToShip
-                } else {
-                    endOffset = new Vector3f((float)targetOffsetWorld.x, (float)targetOffsetWorld.y, (float)targetOffsetWorld.z);
-                }
-            }
-        } catch (Exception e) {
-            // 郢ｧ・ｨ郢晢ｽｩ郢晢ｽｼ騾具ｽｺ騾墓ｻ灘・邵ｺ・ｯ邵ｲ竏壹′郢晁ｼ斐◎郢昴・繝ｨ邵ｺ・ｪ邵ｺ蜉ｱ繝ｻ陜ｨ・ｰ闕ｳ鄙ｫ竊鍋ｸｺ繝ｻ・狗ｹｧ繧・・邵ｺ・ｨ邵ｺ蜉ｱ窶ｻ隰蜀怜愛郢ｧ螳夲ｽｩ・ｦ邵ｺ・ｿ郢ｧ繝ｻ
-            if (endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
-                endOffset = getLocalOffset(endState);
-            }
+        if (endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
+            Vec3 targetOffsetWorld = getOffsetFor(be.getLevel(), targetPos, endState);
+            Vec3 targetOffsetLocal = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, targetOffsetWorld);
+            endOffset = targetOffsetLocal.toVector3f();
         }
         
-        // --- 隰蜀怜愛 ---
+        // --- 髫ｰ・ｰ陷諤懈・ ---
         poseStack.translate(0.5, 0.5, 0.5);
         
         int brightestLight = brightestLight(be.getLevel(), selfPos, targetPos);
@@ -132,15 +113,7 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
         Vec3i normal = facing.getNormal();
         Vec3 offset = new Vec3(normal.getX(), normal.getY(), normal.getZ()).scale(0.5);
 
-        try {
-            Object ship = getShipAt(level, pos);
-            if (ship != null) {
-                return transformVector(offset, ship, false); // Ship to World
-            }
-        } catch (Exception e) {
-            // ignore
-        }
-        return offset;
+        return VSLinkUtil.Client.renderLocalVectorToWorld(level, pos, offset);
     }
 
     private Vec3 transformVector(Vec3 vec, Object ship, boolean worldToShip) throws Exception {

@@ -57,42 +57,7 @@ public class HoseConnectorRenderer implements BlockEntityRenderer<HoseConnectorB
 
         poseStack.pushPose();
 
-        Vec3 localDiff = diff;
-        try {
-            if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
-            Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
-            Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
-            Object ship = getShipManagingPos.invoke(null, be.getLevel(), selfPos);
-
-            if (ship != null) {
-                Method getRenderTransform = ship.getClass().getMethod("getRenderTransform");
-                Object renderTransform = getRenderTransform.invoke(ship);
-                Method getWorldToShip = renderTransform.getClass().getMethod("getWorldToShip");
-                Object worldToShipMatrix = getWorldToShip.invoke(renderTransform);
-
-                double m00 = getField(worldToShipMatrix, "m00");
-                double m01 = getField(worldToShipMatrix, "m01");
-                double m02 = getField(worldToShipMatrix, "m02");
-                double m10 = getField(worldToShipMatrix, "m10");
-                double m11 = getField(worldToShipMatrix, "m11");
-                double m12 = getField(worldToShipMatrix, "m12");
-                double m20 = getField(worldToShipMatrix, "m20");
-                double m21 = getField(worldToShipMatrix, "m21");
-                double m22 = getField(worldToShipMatrix, "m22");
-
-                double dx = diff.x;
-                double dy = diff.y;
-                double dz = diff.z;
-
-                double lx = m00 * dx + m10 * dy + m20 * dz;
-                double ly = m01 * dx + m11 * dy + m21 * dz;
-                double lz = m02 * dx + m12 * dy + m22 * dz;
-
-                localDiff = new Vec3(lx, ly, lz);
-            }
-        } catch (Exception e) {
-            // 郢ｧ・ｨ郢晢ｽｩ郢晢ｽｼ霎滂ｽ｡髫輔・
-        }
+        Vec3 localDiff = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, diff);
 
         poseStack.translate(0.5, 0.5, 0.5);
         

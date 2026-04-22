@@ -65,53 +65,18 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
 
         poseStack.pushPose();
 
-        Vec3 localDiff = diff;
-        try {
-            if (!VSLinkUtil.isValkyrienSkiesLoaded()) throw new ClassNotFoundException("Valkyrien Skies is not loaded");
-            Class<?> vsGameUtilsClass = Class.forName("org.valkyrienskies.mod.common.VSGameUtilsKt");
-            Method getShipManagingPos = vsGameUtilsClass.getMethod("getShipManagingPos", Level.class, BlockPos.class);
-            Object ship = getShipManagingPos.invoke(null, be.getLevel(), selfPos);
-
-            if (ship != null) {
-                Method getRenderTransform = ship.getClass().getMethod("getRenderTransform");
-                Object renderTransform = getRenderTransform.invoke(ship);
-                Method getWorldToShip = renderTransform.getClass().getMethod("getWorldToShip");
-                Object worldToShipMatrix = getWorldToShip.invoke(renderTransform);
-
-                double m00 = getField(worldToShipMatrix, "m00");
-                double m01 = getField(worldToShipMatrix, "m01");
-                double m02 = getField(worldToShipMatrix, "m02");
-                double m10 = getField(worldToShipMatrix, "m10");
-                double m11 = getField(worldToShipMatrix, "m11");
-                double m12 = getField(worldToShipMatrix, "m12");
-                double m20 = getField(worldToShipMatrix, "m20");
-                double m21 = getField(worldToShipMatrix, "m21");
-                double m22 = getField(worldToShipMatrix, "m22");
-
-                double dx = diff.x;
-                double dy = diff.y;
-                double dz = diff.z;
-
-                double lx = m00 * dx + m10 * dy + m20 * dz;
-                double ly = m01 * dx + m11 * dy + m21 * dz;
-                double lz = m02 * dx + m12 * dy + m22 * dz;
-
-                localDiff = new Vec3(lx, ly, lz);
-            }
-        } catch (Exception e) {
-            // Ignore error
-        }
+        Vec3 localDiff = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, diff);
 
         poseStack.translate(0.5, 0.5, 0.5);
         
         int brightestLight = brightestLight(be.getLevel(), selfPos, targetPos);
         
-        // 郢ｧ・｢郢昜ｹ斟鍋ｹ晢ｽｼ郢ｧ・ｷ郢晢ｽｧ郢晢ｽｳ騾包ｽｨ邵ｺ・ｮ郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ髫ｪ閧ｲ・ｮ繝ｻ
+        // 驛｢・ｧ繝ｻ・｢驛｢譏懶ｽｹ譁滄豪・ｹ譎｢・ｽ・ｼ驛｢・ｧ繝ｻ・ｷ驛｢譎｢・ｽ・ｧ驛｢譎｢・ｽ・ｳ鬨ｾ蛹・ｽｽ・ｨ驍ｵ・ｺ繝ｻ・ｮ驛｢・ｧ繝ｻ・ｪ驛｢譎・ｽｼ譁絶落驛｢譏ｴ繝ｻ郢晢ｽｨ鬮ｫ・ｪ髢ｧ・ｲ繝ｻ・ｮ郢晢ｽｻ
         float speed = be.getSpeed();
         float time = be.getLevel().getGameTime() + partialTicks;
-        float offset = (time * speed / 20.0f) / 16.0f; // 鬨ｾ貅ｷ・ｺ・ｦ邵ｺ・ｫ陟｢諛環ｧ邵ｺ・ｦ髫ｱ・ｿ隰ｨ・ｴ
+        float offset = (time * speed / 20.0f) / 16.0f; // 鬯ｨ・ｾ雋・ｽｷ繝ｻ・ｺ繝ｻ・ｦ驍ｵ・ｺ繝ｻ・ｫ髯滂ｽ｢隲帷腸・ｧ驍ｵ・ｺ繝ｻ・ｦ鬮ｫ・ｱ繝ｻ・ｿ髫ｰ・ｨ繝ｻ・ｴ
         
-        // North/South (Z髴・ｽｸ) 隴・ｽｹ陷ｷ莉｣繝ｻ邵ｺ・ｨ邵ｺ髦ｪ繝ｻ陜玲ｫ・ｽｻ・｢隴・ｽｹ陷ｷ莉｣繝ｻ鬮｢・｢闖ｫ繧・帝ｨｾ繝ｻ竊鍋ｸｺ・ｪ郢ｧ荵昶螺郢ｧ竏晄ｸ夐怕・｢
+        // North/South (Z鬮ｴ繝ｻ・ｽ・ｸ) 髫ｴ繝ｻ・ｽ・ｹ髯ｷ・ｷ闔会ｽ｣郢晢ｽｻ驍ｵ・ｺ繝ｻ・ｨ驍ｵ・ｺ鬮ｦ・ｪ郢晢ｽｻ髯懃軸・ｫ繝ｻ・ｽ・ｻ繝ｻ・｢髫ｴ繝ｻ・ｽ・ｹ髯ｷ・ｷ闔会ｽ｣郢晢ｽｻ鬯ｮ・｢繝ｻ・｢髣厄ｽｫ郢ｧ繝ｻﾂ蟶晢ｽｨ・ｾ郢晢ｽｻ遶企豪・ｸ・ｺ繝ｻ・ｪ驛｢・ｧ闕ｵ譏ｶ陞ｺ驛｢・ｧ遶乗刋・ｸ螟先輔・・｢
         if (be.getBlockState().getValue(ChainConnectorBlock.FACING).getAxis() == Direction.Axis.Z) {
             offset *= -1;
         }
@@ -154,25 +119,25 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
         }
         up = new Vector3f(right).cross(direction).normalize();
 
-        // 郢ｧ・ｪ郢晁ｼ斐◎郢昴・繝ｨ髫ｪ閧ｲ・ｮ繝ｻ(3郢晏ｳｨ繝｣郢昴・= 3/16)
+        // 驛｢・ｧ繝ｻ・ｪ驛｢譎・ｽｼ譁絶落驛｢譏ｴ繝ｻ郢晢ｽｨ鬮ｫ・ｪ髢ｧ・ｲ繝ｻ・ｮ郢晢ｽｻ(3驛｢譎擾ｽｳ・ｨ郢晢ｽ｣驛｢譏ｴ繝ｻ= 3/16)
         float offsetDist = 3.0f / 16.0f;
         Vector3f offsetUp = new Vector3f(up).mul(offsetDist);
         Vector3f offsetDown = new Vector3f(up).mul(-offsetDist);
 
         Matrix4f m = ms.last().pose();
 
-        // 闕ｳ鄙ｫ繝ｻ郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ (闕ｳﾂ隴・ｽｹ陷ｷ莉｣竊楢恪霈費ｿ･)
+        // 髣包ｽｳ驗呻ｽｫ郢晢ｽｻ驛｢譏ｶ繝ｻ邵ｺ閾･・ｹ譎｢・ｽ・ｼ驛｢譎｢・ｽ・ｳ (髣包ｽｳ・つ髫ｴ繝ｻ・ｽ・ｹ髯ｷ・ｷ闔会ｽ｣遶頑･｢諱ｪ髴郁ｲｻ・ｿ・･)
         renderChain(builder, m, direction, up, right, offsetUp, length, light, textureOffset);
-        // 闕ｳ荵昴・郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ (鬨ｾ繝ｻ蟀ｿ陷ｷ莉｣竊楢恪霈費ｿ･)
+        // 髣包ｽｳ闕ｵ譏ｴ繝ｻ驛｢譏ｶ繝ｻ邵ｺ閾･・ｹ譎｢・ｽ・ｼ驛｢譎｢・ｽ・ｳ (鬯ｨ・ｾ郢晢ｽｻ陝・ｿ髯ｷ・ｷ闔会ｽ｣遶頑･｢諱ｪ髴郁ｲｻ・ｿ・･)
         renderChain(builder, m, direction, up, right, offsetDown, length, light, -textureOffset);
     }
 
     private void renderChain(VertexConsumer builder, Matrix4f m, Vector3f direction, Vector3f up, Vector3f right, Vector3f offset, float length, int light, float vOffset) {
-        float width = 3.0f / 16.0f; // 郢昶・縺臥ｹ晢ｽｼ郢晢ｽｳ邵ｺ・ｮ陝ｷ繝ｻ(3郢晏ｳｨ繝｣郢昴・
+        float width = 3.0f / 16.0f; // 驛｢譏ｶ繝ｻ邵ｺ閾･・ｹ譎｢・ｽ・ｼ驛｢譎｢・ｽ・ｳ驍ｵ・ｺ繝ｻ・ｮ髯晢ｽｷ郢晢ｽｻ(3驛｢譎擾ｽｳ・ｨ郢晢ｽ｣驛｢譏ｴ繝ｻ
         float r = width / 2.0f;
 
-        Vector3f cross1 = new Vector3f(up).add(right).normalize().mul(r); // 45陟趣ｽｦ
-        Vector3f cross2 = new Vector3f(up).sub(right).normalize().mul(r); // -45陟趣ｽｦ
+        Vector3f cross1 = new Vector3f(up).add(right).normalize().mul(r); // 45髯溯ｶ｣・ｽ・ｦ
+        Vector3f cross2 = new Vector3f(up).sub(right).normalize().mul(r); // -45髯溯ｶ｣・ｽ・ｦ
 
         // Plane 1 (UV: 0,0 -> 3,16)
         Vector3f p1_start = new Vector3f(offset).sub(cross1);
@@ -192,11 +157,11 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
         float uMin2 = 3.0f / 16.0f;
         float uMax2 = 6.0f / 16.0f;
 
-        // V陟趣ｽｧ隶灘生繝ｻ郢ｧ・｢郢昜ｹ斟鍋ｹ晢ｽｼ郢ｧ・ｷ郢晢ｽｧ郢晢ｽｳ
+        // V髯溯ｶ｣・ｽ・ｧ髫ｶ轣倡函郢晢ｽｻ驛｢・ｧ繝ｻ・｢驛｢譏懶ｽｹ譁滄豪・ｹ譎｢・ｽ・ｼ驛｢・ｧ繝ｻ・ｷ驛｢譎｢・ｽ・ｧ驛｢譎｢・ｽ・ｳ
         float vMin = vOffset;
         float vMax = length + vOffset;
 
-        // 闕ｳ・｡鬮ｱ・｢隰蜀怜愛
+        // 髣包ｽｳ繝ｻ・｡鬯ｮ・ｱ繝ｻ・｢髫ｰ・ｰ陷諤懈・
         quad(builder, m, p1_start, p1_end, p2_end, p2_start, uMin1, uMax1, vMin, vMax, light);
         quad(builder, m, p2_start, p2_end, p1_end, p1_start, uMin1, uMax1, vMin, vMax, light);
 
