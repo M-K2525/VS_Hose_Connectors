@@ -241,7 +241,14 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
         Player player = context.getPlayer();
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        
+
+        if (player != null && !level.isClientSide && LinkSelection.get(player, LINK_SELECTION_CHANNEL) != null) {
+            LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
+            player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
+            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
+            return InteractionResult.SUCCESS;
+        }
+
         if (player != null && !level.isClientSide) {
             if (!player.isCreative()) {
                 ItemStack itemStack = new ItemStack(this);

@@ -250,6 +250,22 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
     }
 
     @Override
+    public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        Player player = context.getPlayer();
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+
+        if (player != null && !level.isClientSide && LinkSelection.get(player, LINK_SELECTION_CHANNEL) != null) {
+            LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
+            player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
+            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
+            return InteractionResult.SUCCESS;
+        }
+
+        return InteractionResult.PASS;
+    }
+
+    @Override
     public IRotate.SpeedLevel getMinimumRequiredSpeedLevel() {
         return IRotate.SpeedLevel.MEDIUM;
     }
