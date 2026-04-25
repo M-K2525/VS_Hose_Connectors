@@ -1,15 +1,18 @@
 package com.mk2525.vsfluidlink.content.ElectricWireConnector;
 
+import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
@@ -18,13 +21,17 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.EnergyStorage;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-public class ElectricWireConnectorBlockEntity extends BlockEntity {
+import java.util.List;
+
+public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final int NEIGHBOR_TRANSFER_RATE = 10000;
 
     private static class MutableEnergyStorage extends EnergyStorage {
         public MutableEnergyStorage(int capacity, int maxReceive, int maxExtract) {
@@ -140,12 +147,12 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity {
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricWireConnectorBlockEntity blockEntity) {
-        if (level.isClientSide || blockEntity.targetPos == null) return;
+        if (level.isClientSide) return;
 
-        // Check if already processed this tick
-        if (blockEntity.lastTransferTick == level.getGameTime()) {
-            return;
-        }
+        transferWithAdjacent(level, pos, blockEntity);
+
+        if (blockEntity.targetPos == null) return;
+        if (blockEntity.lastTransferTick == level.getGameTime()) return;
 
         try {
             if (!level.isLoaded(blockEntity.targetPos)) return;
@@ -219,5 +226,96 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity {
 
     public IEnergyStorage getEnergyStorage() {
         return energyStorage;
+    }
+
+    private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity) {
+        for (var direction : net.minecraft.core.Direction.values()) {
+            BlockPos neighbourPos = pos.relative(direction);
+            if (!level.isLoaded(neighbourPos)) {
+                continue;
+            }
+
+            IEnergyStorage neighbourStorage = findEnergyStorage(level, neighbourPos, direction.getOpposite());
+
+            if (neighbourStorage == null) {
+                continue;
+            }
+
+            pullFromAdjacent(blockEntity.energyStorage, neighbourStorage);
+            pushToAdjacent(blockEntity.energyStorage, neighbourStorage);
+        }
+    }
+
+    private static void pullFromAdjacent(IEnergyStorage localStorage, IEnergyStorage neighbourStorage) {
+        int simulatedExtract = neighbourStorage.extractEnergy(NEIGHBOR_TRANSFER_RATE, true);
+        if (simulatedExtract <= 0) {
+            return;
+        }
+
+        int accepted = localStorage.receiveEnergy(simulatedExtract, true);
+        if (accepted <= 0) {
+            return;
+        }
+
+        int extracted = neighbourStorage.extractEnergy(accepted, false);
+        if (extracted > 0) {
+            localStorage.receiveEnergy(extracted, false);
+        }
+    }
+
+    private static void pushToAdjacent(IEnergyStorage localStorage, IEnergyStorage neighbourStorage) {
+        int simulatedExtract = localStorage.extractEnergy(NEIGHBOR_TRANSFER_RATE, true);
+        if (simulatedExtract <= 0) {
+            return;
+        }
+
+        int accepted = neighbourStorage.receiveEnergy(simulatedExtract, true);
+        if (accepted <= 0) {
+            return;
+        }
+
+        int extracted = localStorage.extractEnergy(accepted, false);
+        if (extracted <= 0) {
+            return;
+        }
+
+        int received = neighbourStorage.receiveEnergy(extracted, false);
+        if (received < extracted) {
+            localStorage.receiveEnergy(extracted - received, false);
+        }
+    }
+
+    @Nullable
+    private static IEnergyStorage findEnergyStorage(Level level, BlockPos pos, net.minecraft.core.Direction preferredSide) {
+        IEnergyStorage storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, preferredSide);
+        if (storage != null) {
+            return storage;
+        }
+
+        storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, null);
+        if (storage != null) {
+            return storage;
+        }
+
+        for (var side : net.minecraft.core.Direction.values()) {
+            if (side == preferredSide) {
+                continue;
+            }
+            storage = level.getCapability(Capabilities.EnergyStorage.BLOCK, pos, side);
+            if (storage != null) {
+                return storage;
+            }
+        }
+
+        return null;
+    }
+
+    @Override
+    public boolean addToTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.empty());
+        tooltip.add(Component.literal("Energy Buffer").withStyle(ChatFormatting.WHITE));
+        tooltip.add(Component.literal(energyStorage.getEnergyStored() + " / " + energyStorage.getMaxEnergyStored() + " FE")
+            .withStyle(ChatFormatting.GOLD));
+        return true;
     }
 }

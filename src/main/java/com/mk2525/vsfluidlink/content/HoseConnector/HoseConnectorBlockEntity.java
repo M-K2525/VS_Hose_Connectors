@@ -1,5 +1,6 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
+import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
@@ -10,6 +11,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
@@ -23,7 +26,9 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-public class HoseConnectorBlockEntity extends BlockEntity {
+import java.util.List;
+
+public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
     protected final FluidTank tank = new FluidTank(1000) {
         @Override
@@ -199,5 +204,19 @@ public class HoseConnectorBlockEntity extends BlockEntity {
 
    public FluidTank getTank() {
         return tank;
+    }
+
+    @Override
+    public boolean addToTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.empty());
+        tooltip.add(Component.literal("Fluid Buffer").withStyle(ChatFormatting.WHITE));
+
+        if (!tank.isEmpty()) {
+            tooltip.add(tank.getFluid().getHoverName().copy().withStyle(ChatFormatting.GRAY));
+        }
+
+        tooltip.add(Component.literal(tank.getFluidAmount() + " / " + tank.getCapacity() + " mB")
+            .withStyle(ChatFormatting.GOLD));
+        return true;
     }
 }
