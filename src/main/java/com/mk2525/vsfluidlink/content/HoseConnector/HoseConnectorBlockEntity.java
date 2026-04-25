@@ -189,12 +189,10 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
                 int otherAmount = totalAmount - myAmount; // Remainder goes to the other tank
 
                 if (myTank.getFluidAmount() != myAmount) {
-                    myTank.setFluid(fluid.copy());
-                    myTank.getFluid().setAmount(myAmount);
+                    setTankContents(blockEntity, myTank, fluid, myAmount);
                 }
                 if (otherTank.getFluidAmount() != otherAmount) {
-                    otherTank.setFluid(fluid.copy());
-                    otherTank.getFluid().setAmount(otherAmount);
+                    setTankContents(targetLink, otherTank, fluid, otherAmount);
                 }
             }
         } catch (Exception e) {
@@ -204,6 +202,19 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
 
    public FluidTank getTank() {
         return tank;
+    }
+
+    private static void setTankContents(HoseConnectorBlockEntity owner, FluidTank tank, FluidStack fluid, int amount) {
+        FluidStack updated = amount <= 0 ? FluidStack.EMPTY : fluid.copy();
+        if (!updated.isEmpty()) {
+            updated.setAmount(amount);
+        }
+
+        tank.setFluid(updated);
+        owner.setChanged();
+        if (owner.level != null && !owner.level.isClientSide) {
+            owner.level.sendBlockUpdated(owner.getBlockPos(), owner.getBlockState(), owner.getBlockState(), 3);
+        }
     }
 
     @Override
