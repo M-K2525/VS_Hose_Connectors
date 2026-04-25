@@ -1,9 +1,11 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
+import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.logging.LogUtils;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -11,6 +13,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
@@ -29,7 +32,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-public class HoseConnectorBlockEntity extends BlockEntity {
+import java.util.List;
+
+public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
     protected final FluidTank tank = new FluidTank(1000) {
         @Override
@@ -175,12 +180,10 @@ public class HoseConnectorBlockEntity extends BlockEntity {
                 int otherAmount = totalAmount - myAmount; // Remainder goes to the other tank
 
                 if (myTank.getFluidAmount() != myAmount) {
-                    myTank.setFluid(fluid.copy());
-                    myTank.getFluid().setAmount(myAmount);
+                    setTankContents(blockEntity, myTank, fluid, myAmount);
                 }
                 if (otherTank.getFluidAmount() != otherAmount) {
-                    otherTank.setFluid(fluid.copy());
-                    otherTank.getFluid().setAmount(otherAmount);
+                    setTankContents(targetLink, otherTank, fluid, otherAmount);
                 }
             }
         } catch (Exception e) {
@@ -224,5 +227,30 @@ public class HoseConnectorBlockEntity extends BlockEntity {
     
     public FluidTank getTank() {
         return tank;
+    }
+
+    private static void setTankContents(HoseConnectorBlockEntity owner, FluidTank tank, FluidStack fluid, int amount) {
+        FluidStack updated = amount <= 0 ? FluidStack.EMPTY : fluid.copy();
+        if (!updated.isEmpty()) {
+            updated.setAmount(amount);
+        }
+
+        tank.setFluid(updated);
+        owner.setChanged();
+        if (owner.level != null && !owner.level.isClientSide) {
+            owner.level.sendBlockUpdated(owner.getBlockPos(), owner.getBlockState(), owner.getBlockState(), 3);
+        }
+    }
+
+    @Override
+    public boolean addToTooltip(List<Component> tooltip, boolean isPlayerSneaking) {
+        tooltip.add(Component.empty());
+        tooltip.add(Component.literal("Fluid Buffer").withStyle(ChatFormatting.WHITE));
+        if (!tank.isEmpty()) {
+            tooltip.add(tank.getFluid().getDisplayName().copy().withStyle(ChatFormatting.GRAY));
+        }
+        tooltip.add(Component.literal(tank.getFluidAmount() + " / " + tank.getCapacity() + " mB")
+            .withStyle(ChatFormatting.GOLD));
+        return true;
     }
 }

@@ -55,10 +55,7 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ENERGY) {
-            Direction facing = getBlockState().getValue(ElectricMagnetWireConnectorBlock.FACING);
-            if (side == facing.getOpposite()) {
-                return energyHandler.cast();
-            }
+            return energyHandler.cast();
         }
         return super.getCapability(cap, side);
     }
