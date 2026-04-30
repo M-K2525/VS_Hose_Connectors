@@ -15,9 +15,7 @@
   "item.vsfluidlink.chain_connector.tooltip": "让物理结构间的旋转力传输变得更加简单。\n使用扳手右击以选择第一个连接点，\n然后，右击另一个接口以建立连接。",
   "block.vsfluidlink.magnet_chain_connector": "磁吸式锁链传动接口",
   "item.vsfluidlink.magnet_chain_connector.tooltip": "可自动连接前方的另一个磁吸式锁链传动接口。\n通入红石信号可禁用连接。",
-
   "creativetab.vsfluidlink_tab": "瓦尔基里天空：软管接口",
-
   "vsfluidlink.message.selection_cleared": "已清除选择",
   "vsfluidlink.message.first_pos_selected": "已选择第一个位置：%s",
   "vsfluidlink.message.second_pos_selected": "已选择第二个位置并连接：%s",
@@ -27,3 +25,4 @@
   "vsfluidlink.message.link_disconnected": "连接已断开",
   "vsfluidlink.message.world_to_world_restricted": "世界中的方块连接受配置文件限制。",
   "vsfluidlink.message.intra_ship_restricted": "相同物理结构上的方块连接受配置文件限制。"
+}

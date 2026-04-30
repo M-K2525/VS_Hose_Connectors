@@ -1,0 +1,41 @@
+modLoader="javafml"
+loaderVersion="[2,)"
+license="MIT"
+
+[[mods]]
+modId="vsfluidlink"
+version="0.1.4"
+displayName="VS Sable Hose Connectors"
+authors="M_K2525"
+logoFile="icon.png"
+credits=""
+description='''
+Better transport between Valkyrien Skies ships & Sable sub level.
+'''
+
+# 依存関係の定義
+[[dependencies.vsfluidlink]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21.1,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="create"
+    type="required"
+    versionRange="[6.0.9,6.1.0)"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
+    modId="valkyrienskies"
+    type="optional"
+    versionRange="[2.4.0,)"
+    side="BOTH"
