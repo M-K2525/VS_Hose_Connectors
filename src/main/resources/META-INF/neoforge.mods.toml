@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="vsfluidlink"
-version="0.1.4"
+version="0.1.5"
 displayName="VS Sable Hose Connectors"
 authors="M_K2525"
 logoFile="icon.png"
