@@ -34,8 +34,8 @@ import java.lang.reflect.Method;
 
 public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemMagnetHoseConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation TEXTURE = ResourceLocation.tryParse("create:textures/block/hose_pulley_coil_scroll.png");
-    private static final float WIDTH = 0.4f;
+    private static final ResourceLocation TEXTURE = new ResourceLocation("vsfluidlink", "textures/block/coil.png");
+    private static final float WIDTH = 0.375f;
     private final BlockRenderDispatcher blockRenderer;
 
     public ItemMagnetHoseConnectorRenderer(BlockEntityRendererProvider.Context context) {
@@ -234,13 +234,15 @@ public class ItemMagnetHoseConnectorRenderer extends KineticBlockEntityRenderer<
 
         Matrix4f m = ms.last().pose();
 
-        float uMin = 6f / 16f;
-        float uMax = 10f / 16f;
+        float uMin = 5f / 16f;
+        float uMax = 11f / 16f;
 
-        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, length, light);
-        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, length, light);
-        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, length, light);
-        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, length, light);
+        float vMax = length * (uMax - uMin) * 0.5f / WIDTH;
+
+        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, vMax, light);
         
         ms.popPose();
     }
