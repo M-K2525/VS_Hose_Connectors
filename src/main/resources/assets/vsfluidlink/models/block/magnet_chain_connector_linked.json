@@ -7,7 +7,7 @@
 		"3": "vsfluidlink:block/magnet",
 		"4": "vsfluidlink:block/magnet_2",
 		"9": "vsfluidlink:block/connectors_common",
-		"particle": "create:block/brass_casing"
+		"particle": "vsfluidlink:block/magnet"
 	},
 	"elements": [
 		{
@@ -98,8 +98,8 @@
 			}
 		},
 		{
-			"from": [0.949, 5, 4],
-			"to": [1.949, 11, 12],
+			"from": [0.99, 5, 4],
+			"to": [1.99, 11, 12],
 			"rotation": {"angle": 0, "axis": "y", "origin": [-0.075, 5, 10]},
 			"faces": {
 				"north": {"uv": [15.5, 8, 16, 12], "rotation": 180, "texture": "#9"},
@@ -111,8 +111,8 @@
 			}
 		},
 		{
-			"from": [0.95, 4, 5],
-			"to": [1.95, 12, 11],
+			"from": [1, 4, 5],
+			"to": [2, 12, 11],
 			"rotation": {"angle": 0, "axis": "y", "origin": [-0.05, 10, 11]},
 			"faces": {
 				"north": {"uv": [15.5, 8, 16, 12], "rotation": 180, "texture": "#9"},
@@ -146,8 +146,8 @@
 			}
 		},
 		{
-			"from": [13.975, 4, 5],
-			"to": [14.975, 12, 11],
+			"from": [13.99, 4, 5],
+			"to": [14.99, 12, 11],
 			"rotation": {"angle": 0, "axis": "y", "origin": [13.975, 10, 11]},
 			"faces": {
 				"north": {"uv": [15.5, 8, 16, 12], "rotation": 180, "texture": "#9"},
@@ -170,8 +170,8 @@
 			}
 		},
 		{
-			"from": [13.974, 5, 4],
-			"to": [14.974, 11, 12],
+			"from": [14, 5, 4],
+			"to": [15, 11, 12],
 			"rotation": {"angle": 0, "axis": "y", "origin": [13.95, 5, 10]},
 			"faces": {
 				"north": {"uv": [15.5, 8, 16, 12], "rotation": 180, "texture": "#9"},
