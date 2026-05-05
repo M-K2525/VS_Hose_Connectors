@@ -1,5 +1,6 @@
 package com.mk2525.vsfluidlink.content.ItemHoseConnecotor;
 
+import com.mk2525.vsfluidlink.content.ItemMagnetHoseConnector.ItemMagnetHoseConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlocks;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -16,6 +17,8 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
@@ -32,8 +35,8 @@ import java.lang.reflect.Method;
 
 public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHoseConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("create", "textures/block/hose_pulley_coil_scroll.png");
-    private static final float WIDTH = 0.4f;
+    private static final ResourceLocation TEXTURE = ResourceLocation.tryParse("vsfluidlink:textures/block/coil.png");
+    private static final float WIDTH = 0.375f;
     private final BlockRenderDispatcher blockRenderer;
 
     public ItemHoseConnectorRenderer(BlockEntityRendererProvider.Context context) {
@@ -60,19 +63,29 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
         Vec3 endPos = VSLinkUtil.Client.getRenderWorldPos(be.getLevel(), targetPos);
         Vec3 diff = endPos.subtract(startPos);
 
-
         if (diff.lengthSqr() < 0.001) return;
 
         poseStack.pushPose();
 
+        BlockState startState = be.getBlockState();
+        BlockState endState = be.getLevel().getBlockState(targetPos);
+
         Vec3 localDiff = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, diff);
+        Vector3f startOffset = getLocalOffset(startState);
+        Vector3f endOffset = new Vector3f();
+
+        if (endState.getBlock() instanceof ItemHoseConnectorBlock || endState.getBlock() instanceof ItemMagnetHoseConnectorBlock) {
+            Vec3 targetOffsetWorld = getOffsetFor(be.getLevel(), targetPos, endState);
+            Vec3 targetOffsetLocal = VSLinkUtil.Client.renderWorldVectorToLocal(be.getLevel(), selfPos, targetOffsetWorld);
+            endOffset = targetOffsetLocal.toVector3f();
+        }
 
         poseStack.translate(0.5, 0.5, 0.5);
         
         int brightestLight = brightestLight(be.getLevel(), selfPos, targetPos);
         
-        renderHose(poseStack, bufferSource, localDiff, brightestLight);
-        renderDecoration(poseStack, bufferSource, localDiff, brightestLight);
+        renderHose(poseStack, bufferSource, localDiff, startOffset, endOffset, brightestLight);
+        renderDecoration(poseStack, bufferSource, localDiff, startOffset, endOffset, brightestLight);
         
         poseStack.popPose();
     }
@@ -87,15 +100,37 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
         renderRotatingBuffer(be, CachedBuffers.block(KINETIC_BLOCK, shaftState), poseStack, bufferSource.getBuffer(RenderType.solid()), light);
     }
     
-    private void renderDecoration(PoseStack ms, MultiBufferSource buffer, Vec3 diff, int light) {
+    private Vector3f getLocalOffset(BlockState state) {
+        Direction facing = state.getValue(ItemHoseConnectorBlock.FACING);
+        Vec3i normal = facing.getNormal();
+        return new Vector3f(normal.getX(), normal.getY(), normal.getZ()).mul(0.5f);
+    }
+
+    private Vec3 getOffsetFor(Level level, BlockPos pos, BlockState state) {
+        Direction facing;
+        if (state.getBlock() instanceof ItemHoseConnectorBlock) {
+            facing = state.getValue(ItemHoseConnectorBlock.FACING);
+        } else {
+            facing = state.getValue(ItemMagnetHoseConnectorBlock.FACING);
+        }
+
+        Vec3i normal = facing.getNormal();
+        Vec3 offset = new Vec3(normal.getX(), normal.getY(), normal.getZ()).scale(0.5);
+        return VSLinkUtil.Client.renderLocalVectorToWorld(level, pos, offset);
+    }
+
+    private void renderDecoration(PoseStack ms, MultiBufferSource buffer, Vec3 localDiff, Vector3f startOffset, Vector3f endOffset, int light) {
         BlockState renderState = ModBlocks.HOSE_DECORATION.get().defaultBlockState();
-        
-        Vec3 midPoint = diff.scale(0.5);
+
+        Vector3f hoseStart = startOffset;
+        Vector3f hoseEnd = new Vector3f((float) localDiff.x, (float) localDiff.y, (float) localDiff.z).add(endOffset);
+        Vector3f hoseVec = new Vector3f(hoseEnd).sub(hoseStart);
+        Vector3f midPoint = new Vector3f(hoseStart).add(hoseVec.mul(0.5f));
         
         ms.pushPose();
         ms.translate(midPoint.x, midPoint.y, midPoint.z);
         
-        Vector3f direction = new Vector3f((float)diff.x, (float)diff.y, (float)diff.z).normalize();
+        Vector3f direction = hoseVec.normalize();
         Vector3f up = new Vector3f(0, 1, 0);
         ms.mulPose(new Quaternionf().rotationTo(up, direction));
         
@@ -112,12 +147,18 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
         return field.getDouble(obj);
     }
 
-    private void renderHose(PoseStack ms, MultiBufferSource buffer, Vec3 diff, int light) {
+    private void renderHose(PoseStack ms, MultiBufferSource buffer, Vec3 localDiff, Vector3f startOffset, Vector3f endOffset, int light) {
         VertexConsumer builder = buffer.getBuffer(RenderType.entityCutout(TEXTURE));
 
-        float length = (float) diff.length();
-        
-        Vector3f direction = new Vector3f((float)diff.x, (float)diff.y, (float)diff.z);
+        Vector3f hoseStart = startOffset;
+        Vector3f hoseEnd = new Vector3f((float) localDiff.x, (float) localDiff.y, (float) localDiff.z).add(endOffset);
+        Vector3f hoseVec = new Vector3f(hoseEnd).sub(hoseStart);
+        float length = hoseVec.length();
+
+        ms.pushPose();
+        ms.translate(hoseStart.x, hoseStart.y, hoseStart.z);
+
+        Vector3f direction = new Vector3f(hoseVec).normalize();
 
         Vector3f up = new Vector3f(0, 1, 0);
         Vector3f right;
@@ -141,20 +182,24 @@ public class ItemHoseConnectorRenderer extends KineticBlockEntityRenderer<ItemHo
         Vector3f s3 = p3;
         Vector3f s4 = p4;
 
-        Vector3f e1 = new Vector3f(s1).add(direction);
-        Vector3f e2 = new Vector3f(s2).add(direction);
-        Vector3f e3 = new Vector3f(s3).add(direction);
-        Vector3f e4 = new Vector3f(s4).add(direction);
+        Vector3f e1 = new Vector3f(p1).add(hoseVec);
+        Vector3f e2 = new Vector3f(p2).add(hoseVec);
+        Vector3f e3 = new Vector3f(p3).add(hoseVec);
+        Vector3f e4 = new Vector3f(p4).add(hoseVec);
 
         Matrix4f m = ms.last().pose();
 
-        float uMin = 6f / 16f;
-        float uMax = 10f / 16f;
+        float uMin = 5f / 16f;
+        float uMax = 11f / 16f;
 
-        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, length, light);
-        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, length, light);
-        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, length, light);
-        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, length, light);
+        float vMax = length * (uMax - uMin) * 0.5f / WIDTH;
+
+        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, vMax, light);
+
+        ms.popPose();
     }
 
     private void quad(VertexConsumer builder, Matrix4f m, Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4, float uMin, float uMax, float vMin, float vMax, int light) {

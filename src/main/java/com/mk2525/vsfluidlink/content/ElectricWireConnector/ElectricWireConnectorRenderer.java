@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 public class ElectricWireConnectorRenderer implements BlockEntityRenderer<ElectricWireConnectorBlockEntity> {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath("vsfluidlink", "textures/block/copper_coil.png");
-    private static final float WIDTH = 0.2f;
+    private static final float WIDTH = 0.375f;
     private final BlockRenderDispatcher blockRenderer;
 
     public ElectricWireConnectorRenderer(BlockEntityRendererProvider.Context context) {
@@ -71,7 +71,7 @@ public class ElectricWireConnectorRenderer implements BlockEntityRenderer<Electr
     }
     
     private void renderDecoration(PoseStack ms, MultiBufferSource buffer, Vec3 diff, int light) {
-        BlockState renderState = ModBlocks.SMALL_HOSE_DECORATION.get().defaultBlockState();
+        BlockState renderState = ModBlocks.HOSE_DECORATION.get().defaultBlockState();
         
         Vec3 midPoint = diff.scale(0.5);
         
@@ -131,13 +131,15 @@ public class ElectricWireConnectorRenderer implements BlockEntityRenderer<Electr
 
         Matrix4f m = ms.last().pose();
 
-        float uMin = 6f / 16f;
-        float uMax = 10f / 16f;
+        float uMin = 5f / 16f;
+        float uMax = 11f / 16f;
 
-        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, length, light);
-        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, length, light);
-        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, length, light);
-        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, length, light);
+        float vMax = length * (uMax - uMin) * 0.5f / WIDTH;
+
+        quad(builder, m, s1, e1, e2, s2, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s2, e2, e3, s3, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s3, e3, e4, s4, uMin, uMax, 0, vMax, light);
+        quad(builder, m, s4, e4, e1, s1, uMin, uMax, 0, vMax, light);
     }
 
     private void quad(VertexConsumer builder, Matrix4f m, Vector3f p1, Vector3f p2, Vector3f p3, Vector3f p4, float uMin, float uMax, float vMin, float vMax, int light) {
