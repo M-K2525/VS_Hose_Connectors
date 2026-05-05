@@ -3,7 +3,6 @@
 	"credit": "Made by M_K2525",
 	"texture_size": [32, 32],
 	"textures": {
-		"0": "create:block/pipes",
 		"1": "create:block/brass_casing",
 		"9": "vsfluidlink:block/connectors_common",
 		"10": "vsfluidlink:block/mini_fan",
@@ -318,13 +317,13 @@
 			}
 		},
 		{
-			"from": [5, 5, 0],
-			"to": [11, 11, 4],
-			"rotation": {"angle": 0, "axis": "y", "origin": [9.775, 7, -3.6]},
+			"from": [5.001, 5.001, -1],
+			"to": [11.001, 11.001, 3],
+			"rotation": {"angle": 0, "axis": "y", "origin": [9.775, 7, -4.6]},
 			"faces": {
-				"north": {"uv": [1, 11.5, 4, 14.5], "rotation": 90, "texture": "#9"},
+				"north": {"uv": [1, 12.5, 4, 15.5], "rotation": 90, "texture": "#9"},
 				"east": {"uv": [6.5, 12, 9.5, 13], "rotation": 90, "texture": "#9"},
-				"south": {"uv": [1, 11.5, 4, 14.5], "rotation": 90, "texture": "#9"},
+				"south": {"uv": [1, 12.5, 4, 15.5], "rotation": 90, "texture": "#9"},
 				"west": {"uv": [6.5, 12, 9.5, 13], "rotation": 90, "texture": "#9"},
 				"up": {"uv": [6.5, 12, 9.5, 13], "texture": "#9"},
 				"down": {"uv": [6.5, 12, 9.5, 13], "texture": "#9"}
