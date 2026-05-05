@@ -1,6 +1,7 @@
 {
 	"parent": "vsfluidlink:block/item_magnet_hose_connector",
 	"textures": {
-		"6": "vsfluidlink:item/air"
+		"10": "vsfluidlink:block/mini_fan_off",
+		"11": "vsfluidlink:item/air"
 	}
 }
