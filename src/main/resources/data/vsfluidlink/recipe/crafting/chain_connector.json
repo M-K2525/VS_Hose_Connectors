@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "131",
+    "323",
+    "131"
+  ],
+  "key": {
+    "1": {
+      "item": "create:brass_casing"
+    },
+    "2": {
+      "item": "create:shaft"
+    },
+    "3": {
+      "item": "minecraft:chain"
+    }
+  },
+  "result": {
+    "id": "vsfluidlink:chain_connector"
+  },
+  "show_notification": false
+}

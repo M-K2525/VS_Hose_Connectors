@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "111",
+    "323",
+    "444"
+  ],
+  "key": {
+    "1": {
+      "item": "create:encased_fan"
+    },
+    "2": {
+      "item": "vsfluidlink:hose_connector"
+    },
+    "3": {
+      "item": "create:shaft"
+    },
+    "4": {
+      "item": "create:brass_casing"
+    }
+  },
+  "result": {
+    "id": "vsfluidlink:item_hose_connector",
+    "count": 1
+  },
+  "show_notification": false
+}

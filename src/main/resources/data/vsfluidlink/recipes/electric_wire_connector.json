@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "111",
+    "121",
+    "111"
+  ],
+  "key": {
+    "1": {
+      "item": "create:golden_sheet"
+    },
+    "2": {
+      "item": "vsfluidlink:hose_connector"
+    }
+  },
+  "result": {
+    "id": "vsfluidlink:electric_wire_connector",
+    "count": 1
+  },
+  "show_notification": false
+}
