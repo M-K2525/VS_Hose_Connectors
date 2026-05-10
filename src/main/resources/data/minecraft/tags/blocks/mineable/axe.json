@@ -1,9 +1,0 @@
-{
-  "replace": false,
-  "values": [
-    "vsfluidlink:hose_connector",
-    "vsfluidlink:item_hose_connector",
-    "vsfluidlink:electric_wire_connector",
-    "vsfluidlink:chain_connector"
-  ]
-}

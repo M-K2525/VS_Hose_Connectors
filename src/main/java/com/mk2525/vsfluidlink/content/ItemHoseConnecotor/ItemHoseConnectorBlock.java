@@ -26,6 +26,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -262,7 +263,18 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS;
+        if (player != null && !level.isClientSide) {
+            if (!player.isCreative()) {
+                ItemStack itemStack = new ItemStack(this);
+                if (!player.getInventory().add(itemStack)) {
+                    player.drop(itemStack, false);
+                }
+            }
+            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+            level.levelEvent(2001, pos, Block.getId(state));
+        }
+
+        return InteractionResult.SUCCESS;
     }
 
     @Override
