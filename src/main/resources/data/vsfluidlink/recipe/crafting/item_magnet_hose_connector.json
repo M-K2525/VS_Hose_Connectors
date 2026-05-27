@@ -2,22 +2,22 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "111",
+    "141",
     "323",
-    "444"
+    "141"
   ],
   "key": {
     "1": {
-      "item": "create:encased_fan"
+      "item": "create:copper_sheet"
     },
     "2": {
       "item": "vsfluidlink:item_hose_connector"
     },
     "3": {
-      "item": "create:shaft"
+      "item": "minecraft:redstone"
     },
     "4": {
-      "item": "create:copper_sheet"
+      "item": "create:andesite_alloy"
     }
   },
   "result": {
