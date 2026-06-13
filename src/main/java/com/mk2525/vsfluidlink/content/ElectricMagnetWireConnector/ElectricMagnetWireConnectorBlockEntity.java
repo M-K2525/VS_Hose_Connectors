@@ -65,7 +65,7 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
             }
 
             if (currentTarget != null) {
-                BlockEntity targetBe = level.getBlockEntity(currentTarget);
+                BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, currentTarget, blockEntity.getTargetSpaceId(), ElectricMagnetWireConnectorBlockEntity.class);
                 double maxDist = VsFluidLinkConfig.SERVER.maxLinkDistance.get();
                 if (!(targetBe instanceof ElectricMagnetWireConnectorBlockEntity) || !level.isLoaded(currentTarget) || VSLinkUtil.getWorldPos(level, pos).distanceToSqr(VSLinkUtil.getWorldPos(level, currentTarget)) > maxDist * maxDist) {
                     disconnect(level, pos, blockEntity);
@@ -181,9 +181,9 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
         blockEntity.setTargetPos(null);
 
         if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = level.getBlockEntity(oldTarget);
+            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, blockEntity.getTargetSpaceId(), ElectricMagnetWireConnectorBlockEntity.class);
             if (targetBe instanceof ElectricMagnetWireConnectorBlockEntity targetLinkBe) {
-                targetLinkBe.setTargetPos(null);
+                targetLinkBe.setTarget(null, null);
             }
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
         }

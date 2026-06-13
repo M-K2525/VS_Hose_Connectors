@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.content.MagnetHoseConnector;
 
 import com.mk2525.vsfluidlink.content.HoseConnector.HoseConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
+import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.serialization.MapCodec;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
@@ -72,9 +73,9 @@ public class MagnetHoseConnectorBlock extends BaseEntityBlock implements IWrench
             if (blockEntity instanceof MagnetHoseConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
                 if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), MagnetHoseConnectorBlockEntity.class);
                     if (targetBe instanceof MagnetHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
+                        targetLinkBe.setTarget(null, null);
                     }
                 }
             }

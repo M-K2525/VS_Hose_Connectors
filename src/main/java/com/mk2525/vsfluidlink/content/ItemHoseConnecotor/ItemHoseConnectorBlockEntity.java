@@ -42,6 +42,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     };
 
     private BlockPos targetPos;
+    private Long targetSpaceId;
     private int checkCooldown = 0;
 
     public ItemHoseConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -65,7 +66,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         );
     }
 
-    public void setTargetPos(BlockPos targetPos) {
+    public void setTarget(BlockPos targetPos, Long targetSpaceId) {
         if (this.level == null) return;
 
         BlockPos oldTarget = this.targetPos;
@@ -73,6 +74,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         boolean isLinked = targetPos != null;
 
         this.targetPos = targetPos;
+        this.targetSpaceId = targetPos == null ? null : targetSpaceId;
         setChanged();
 
         if (wasLinked != isLinked) {
@@ -86,20 +88,28 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
             sendData();
             updateOwnActivity();
             if (isLinked) {
-                if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
+                if (VSLinkUtil.resolveBlockEntity(level, targetPos, this.targetSpaceId, ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity targetBe) {
                     targetBe.updateOwnActivity();
                 }
             }
             if (wasLinked) {
-                 if (level.getBlockEntity(oldTarget) instanceof ItemHoseConnectorBlockEntity oldTargetBe) {
+                 if (oldTarget != null && VSLinkUtil.resolveBlockEntity(level, oldTarget, VSLinkUtil.getSpatialId(level, oldTarget), ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity oldTargetBe) {
                     oldTargetBe.updateOwnActivity();
                 }
             }
         }
     }
 
+    public void setTargetPos(BlockPos targetPos) {
+        setTarget(targetPos, targetPos == null || level == null ? null : VSLinkUtil.getSpatialId(level, targetPos));
+    }
+
     public BlockPos getTargetPos() {
         return targetPos;
+    }
+
+    public Long getTargetSpaceId() {
+        return targetSpaceId;
     }
 
     @Override
@@ -114,7 +124,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         float mySpeed = Math.abs(getSpeed());
 
         if (targetPos != null && level.isLoaded(targetPos)) {
-            if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
+            if (VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity targetBe) {
                 float targetSpeed = Math.abs(targetBe.getSpeed());
                 if (mySpeed >= 32 && targetSpeed < 32) {
                     activity = LinkActivity.SEND;
@@ -141,8 +151,8 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
             if (checkCooldown-- <= 0) {
                 checkCooldown = 20; // 1秒に1回チェック
 
-                if (!level.isLoaded(targetPos) || !(level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity)) {
-                    setTargetPos(null);
+                if (!level.isLoaded(targetPos) || VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ItemHoseConnectorBlockEntity.class) == null) {
+                    setTarget(null, null);
                     return;
                 }
 
@@ -152,11 +162,11 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
                 double maxDist = VsFluidLinkConfig.SERVER.maxLinkDistance.get();
                 if (myPos.distanceToSqr(targetPosVec) > maxDist * maxDist) {
                     BlockPos oldTarget = targetPos;
-                    setTargetPos(null);
+                    setTarget(null, null);
 
                     if (level.isLoaded(oldTarget)) {
-                        if (level.getBlockEntity(oldTarget) instanceof ItemHoseConnectorBlockEntity targetLink) {
-                            targetLink.setTargetPos(null);
+                        if (VSLinkUtil.resolveBlockEntity(level, oldTarget, VSLinkUtil.getSpatialId(level, oldTarget), ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity targetLink) {
+                            targetLink.setTarget(null, null);
                         }
                     }
 
@@ -167,7 +177,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         }
 
         if (targetPos != null && getBlockState().getValue(ItemHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
-            if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetLink) {
+            if (VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity targetLink) {
                 ItemStack myStack = inventory.getStackInSlot(0);
                 if (!myStack.isEmpty()) {
                     ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);
@@ -182,11 +192,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         super.write(tag, registries, clientPacket);
         tag.put("Inventory", inventory.serializeNBT(registries));
         if (targetPos != null) {
-            CompoundTag targetTag = new CompoundTag();
-            targetTag.putInt("x", targetPos.getX());
-            targetTag.putInt("y", targetPos.getY());
-            targetTag.putInt("z", targetPos.getZ());
-            tag.put("TargetPos", targetTag);
+            tag.put("TargetPos", new com.mk2525.vsfluidlink.util.LinkTarget(targetPos, targetSpaceId).toTag());
         }
     }
 
@@ -196,9 +202,12 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
         if (tag.contains("TargetPos")) {
             CompoundTag targetTag = tag.getCompound("TargetPos");
-            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
+            com.mk2525.vsfluidlink.util.LinkTarget target = com.mk2525.vsfluidlink.util.LinkTarget.fromTag(targetTag);
+            targetPos = target.pos();
+            targetSpaceId = target.spaceId();
         } else {
             targetPos = null;
+            targetSpaceId = null;
         }
     }
 

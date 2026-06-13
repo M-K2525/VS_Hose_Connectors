@@ -5,9 +5,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.core.Vec3i;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.fml.ModList;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3d;
 import org.slf4j.Logger;
 
@@ -16,8 +18,10 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiFunction;
 
 public class VSLinkUtil {
     private static final Logger LOGGER = LogUtils.getLogger();
@@ -153,6 +157,33 @@ public class VSLinkUtil {
         return null;
     }
 
+    public static @Nullable Long getSpatialId(Level level, BlockPos pos) {
+        return getShipId(level, pos);
+    }
+
+    public static boolean isSameEndpoint(BlockEntity blockEntity, BlockPos pos, @Nullable Long spaceId) {
+        return blockEntity.getBlockPos().equals(pos)
+            && Objects.equals(getSpatialId(blockEntity.getLevel(), blockEntity.getBlockPos()), spaceId);
+    }
+
+    public static <T extends BlockEntity> @Nullable T resolveBlockEntity(Level level, BlockPos pos, @Nullable Long expectedSpaceId, Class<T> expectedType) {
+        if (level == null || pos == null) {
+            return null;
+        }
+
+        BlockEntity direct = level.getBlockEntity(pos);
+        if (expectedType.isInstance(direct) && Objects.equals(getSpatialId(level, pos), expectedSpaceId)) {
+            return expectedType.cast(direct);
+        }
+
+        T sableResolved = resolveSableBlockEntity(level, pos, expectedSpaceId, expectedType);
+        if (sableResolved != null) {
+            return sableResolved;
+        }
+
+        return null;
+    }
+
     public static Vec3 getWorldPos(Level level, BlockPos pos) {
         Vec3 localPos = Vec3.atCenterOf(pos);
 
@@ -266,6 +297,52 @@ public class VSLinkUtil {
             LOGGER.warn("[VS Fluid Link] Sable Companion was detected, but its API could not be initialized. Sable coordinate transforms will be disabled.", e);
             return null;
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends BlockEntity> @Nullable T resolveSableBlockEntity(Level level, BlockPos pos, @Nullable Long expectedSpaceId, Class<T> expectedType) {
+        Object companion = getSableCompanion();
+        if (companion == null) return null;
+
+        try {
+            Class<?> subLevelAccessClass = Class.forName("dev.ryanhcode.sable.companion.SubLevelAccess");
+            Method runIncludingSubLevels = companion.getClass().getMethod(
+                "runIncludingSubLevels",
+                Level.class,
+                Position.class,
+                boolean.class,
+                subLevelAccessClass,
+                BiFunction.class
+            );
+
+            Object originSubLevel = getSableContaining(level, pos);
+            BiFunction<Object, BlockPos, T> converter = (subLevel, candidatePos) -> {
+                if (!level.isLoaded(candidatePos)) {
+                    return null;
+                }
+
+                BlockEntity candidate = level.getBlockEntity(candidatePos);
+                if (!expectedType.isInstance(candidate)) {
+                    return null;
+                }
+
+                Long candidateSpaceId = getSpatialId(level, candidatePos);
+                if (!Objects.equals(candidateSpaceId, expectedSpaceId)) {
+                    return null;
+                }
+
+                return expectedType.cast(candidate);
+            };
+
+            Object result = runIncludingSubLevels.invoke(companion, level, Vec3.atCenterOf(pos), true, originSubLevel, converter);
+            if (expectedType.isInstance(result)) {
+                return expectedType.cast(result);
+            }
+        } catch (Exception e) {
+            LOGGER.debug("[VS Fluid Link] Sable block entity resolve failed for pos: {}", pos, e);
+        }
+
+        return null;
     }
 
     private static Object getSableContaining(Level level, BlockPos pos) {

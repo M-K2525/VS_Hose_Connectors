@@ -66,6 +66,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         };
 
     private BlockPos targetPos;
+    private Long targetSpaceId;
     private long lastTransferTick = -1;
 
     public ElectricWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -83,13 +84,14 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         );
     }
 
-    public void setTargetPos(BlockPos targetPos) {
+    public void setTarget(BlockPos targetPos, Long targetSpaceId) {
         if (this.level == null) return;
 
         boolean wasLinked = this.targetPos != null;
         boolean isLinked = targetPos != null;
 
         this.targetPos = targetPos;
+        this.targetSpaceId = targetPos == null ? null : targetSpaceId;
         setChanged();
 
         if (wasLinked != isLinked) {
@@ -104,8 +106,16 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         }
     }
 
+    public void setTargetPos(BlockPos targetPos) {
+        setTarget(targetPos, targetPos == null || level == null ? null : VSLinkUtil.getSpatialId(level, targetPos));
+    }
+
     public BlockPos getTargetPos() {
         return targetPos;
+    }
+
+    public Long getTargetSpaceId() {
+        return targetSpaceId;
     }
 
     @Override
@@ -115,9 +125,12 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         }
         if (tag.contains("TargetPos")) {
             CompoundTag targetTag = tag.getCompound("TargetPos");
-            targetPos = new BlockPos(targetTag.getInt("x"), targetTag.getInt("y"), targetTag.getInt("z"));
+            com.mk2525.vsfluidlink.util.LinkTarget target = com.mk2525.vsfluidlink.util.LinkTarget.fromTag(targetTag);
+            targetPos = target.pos();
+            targetSpaceId = target.spaceId();
         } else {
             targetPos = null;
+            targetSpaceId = null;
         }
     }
 
@@ -125,11 +138,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         tag.putInt("Energy", energyStorage.getEnergyStored());
         if (targetPos != null) {
-            CompoundTag targetTag = new CompoundTag();
-            targetTag.putInt("x", targetPos.getX());
-            targetTag.putInt("y", targetPos.getY());
-            targetTag.putInt("z", targetPos.getZ());
-            tag.put("TargetPos", targetTag);
+            tag.put("TargetPos", new com.mk2525.vsfluidlink.util.LinkTarget(targetPos, targetSpaceId).toTag());
         }
     }
 
@@ -157,9 +166,9 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         try {
             if (!level.isLoaded(blockEntity.targetPos)) return;
 
-            BlockEntity targetBe = level.getBlockEntity(blockEntity.targetPos);
+            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, blockEntity.targetPos, blockEntity.targetSpaceId, ElectricWireConnectorBlockEntity.class);
             if (!(targetBe instanceof ElectricWireConnectorBlockEntity targetLink)) {
-                blockEntity.setTargetPos(null);
+                blockEntity.setTarget(null, null);
                 blockEntity.setChanged();
                 return;
             }
@@ -171,8 +180,8 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
             double maxDist = VsFluidLinkConfig.SERVER.maxLinkDistance.get();
             if (myPos.distanceToSqr(targetPosVec) > maxDist * maxDist) {
                 BlockPos oldTarget = blockEntity.targetPos;
-                blockEntity.setTargetPos(null);
-                targetLink.setTargetPos(null);
+                blockEntity.setTarget(null, null);
+                targetLink.setTarget(null, null);
 
                 level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
                 blockEntity.setChanged();

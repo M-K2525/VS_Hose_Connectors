@@ -65,7 +65,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
             }
 
             if (currentTarget != null) {
-                BlockEntity targetBe = level.getBlockEntity(currentTarget);
+                BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, currentTarget, blockEntity.getTargetSpaceId(), MagnetHoseConnectorBlockEntity.class);
                 double maxDist = VsFluidLinkConfig.SERVER.maxLinkDistance.get();
                 if (!(targetBe instanceof MagnetHoseConnectorBlockEntity) || !level.isLoaded(currentTarget) || VSLinkUtil.getWorldPos(level, pos).distanceToSqr(VSLinkUtil.getWorldPos(level, currentTarget)) > maxDist * maxDist) {
                     disconnect(level, pos, blockEntity);
@@ -115,7 +115,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         // --- Fluid Transfer (every tick) ---
         if (blockEntity.getTargetPos() != null) {
             // This check is now also in HoseConnectorBlockEntity.tick, but it's cheap
-            if (level.isLoaded(blockEntity.getTargetPos()) && level.getBlockEntity(blockEntity.getTargetPos()) instanceof HoseConnectorBlockEntity) {
+            if (level.isLoaded(blockEntity.getTargetPos()) && VSLinkUtil.resolveBlockEntity(level, blockEntity.getTargetPos(), blockEntity.getTargetSpaceId(), HoseConnectorBlockEntity.class) instanceof HoseConnectorBlockEntity) {
                 HoseConnectorBlockEntity.tick(level, pos, state, blockEntity);
             }
         }
@@ -184,9 +184,9 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         blockEntity.setTargetPos(null);
 
         if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = level.getBlockEntity(oldTarget);
+            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, blockEntity.getTargetSpaceId(), MagnetHoseConnectorBlockEntity.class);
             if (targetBe instanceof MagnetHoseConnectorBlockEntity targetLinkBe) {
-                targetLinkBe.setTargetPos(null);
+                targetLinkBe.setTarget(null, null);
             }
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
         }

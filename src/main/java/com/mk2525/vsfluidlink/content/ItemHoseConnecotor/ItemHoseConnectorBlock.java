@@ -4,6 +4,7 @@ import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.LinkSelection;
+import com.mk2525.vsfluidlink.util.LinkTarget;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.kinetics.base.IRotate;
@@ -86,9 +87,9 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             if (blockEntity instanceof ItemHoseConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
                 if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), ItemHoseConnectorBlockEntity.class);
                     if (targetBe instanceof ItemHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
+                        targetLinkBe.setTarget(null, null);
                     }
                 }
             }
@@ -104,12 +105,12 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             if (level.isClientSide) return InteractionResult.SUCCESS;
 
             CompoundTag tag = new CompoundTag();
-            BlockPos selectedLinkPos = LinkSelection.get(player, LINK_SELECTION_CHANNEL);
-            if (selectedLinkPos != null) {
+            LinkTarget selectedTarget = LinkSelection.getTarget(player, LINK_SELECTION_CHANNEL);
+            if (selectedTarget != null) {
                 CompoundTag selectedTag = new CompoundTag();
-                selectedTag.putInt("x", selectedLinkPos.getX());
-                selectedTag.putInt("y", selectedLinkPos.getY());
-                selectedTag.putInt("z", selectedLinkPos.getZ());
+                selectedTag.putInt("x", selectedTarget.pos().getX());
+                selectedTag.putInt("y", selectedTarget.pos().getY());
+                selectedTag.putInt("z", selectedTarget.pos().getZ());
                 tag.put("LinkPos", selectedTag);
             }
 
@@ -130,9 +131,9 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
                 linkBe.setTargetPos(null);
 
                 if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), ItemHoseConnectorBlockEntity.class);
                     if (targetBe instanceof ItemHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
+                        targetLinkBe.setTarget(null, null);
                     }
                     level.playSound(null, targetPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
                 }
@@ -158,14 +159,17 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
                 linkPosTag.putInt("y", pos.getY());
                 linkPosTag.putInt("z", pos.getZ());
                 tag.put("LinkPos", linkPosTag);
-                LinkSelection.set(player, LINK_SELECTION_CHANNEL, pos);
+                LinkSelection.set(player, LINK_SELECTION_CHANNEL, clickedBe);
                 player.displayClientMessage(Component.translatable("vsfluidlink.message.first_pos_selected", pos.toShortString()), true);
                 level.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
             } else {
                CompoundTag firstTag = tag.getCompound("LinkPos");
-               BlockPos firstPos = new BlockPos(firstTag.getInt("x"), firstTag.getInt("y"), firstTag.getInt("z"));
+               LinkTarget firstTarget = LinkSelection.getTarget(player, LINK_SELECTION_CHANNEL);
+               BlockPos firstPos = firstTarget != null ? firstTarget.pos() : new BlockPos(firstTag.getInt("x"), firstTag.getInt("y"), firstTag.getInt("z"));
+               Long firstSpaceId = firstTarget != null ? firstTarget.spaceId() : VSLinkUtil.getSpatialId(level, firstPos);
+               Long secondSpaceId = VSLinkUtil.getSpatialId(level, pos);
 
-                if (firstPos.equals(pos)) {
+                if (firstPos.equals(pos) && java.util.Objects.equals(firstSpaceId, secondSpaceId)) {
                      player.displayClientMessage(Component.translatable("vsfluidlink.message.cannot_link_to_self"), true);
                      return InteractionResult.SUCCESS;
                 }
@@ -181,8 +185,8 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
                     return InteractionResult.SUCCESS;
                 }
 
-                Long shipId1 = VSLinkUtil.getShipId(level, firstPos);
-                Long shipId2 = VSLinkUtil.getShipId(level, pos);
+                Long shipId1 = firstSpaceId;
+                Long shipId2 = secondSpaceId;
 
                 boolean isWorldToWorld = shipId1 == null && shipId2 == null;
                 boolean isIntraShip = shipId1 != null && shipId1.equals(shipId2);
@@ -203,12 +207,12 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
                     return InteractionResult.SUCCESS;
                 }
 
-                BlockEntity be1 = level.getBlockEntity(firstPos);
+                BlockEntity be1 = LinkSelection.resolve(player, LINK_SELECTION_CHANNEL, ItemHoseConnectorBlockEntity.class);
                 BlockEntity be2 = level.getBlockEntity(pos);
 
                 if (be1 instanceof ItemHoseConnectorBlockEntity link1 && be2 instanceof ItemHoseConnectorBlockEntity link2) {
-                    link1.setTargetPos(pos);
-                    link2.setTargetPos(firstPos);
+                    link1.setTarget(pos, secondSpaceId);
+                    link2.setTarget(firstPos, firstSpaceId);
 
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.second_pos_selected", pos.toShortString()), true);
                     level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
