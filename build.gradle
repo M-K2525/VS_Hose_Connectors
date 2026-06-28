@@ -4,7 +4,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.140'
 }
 
-version = '0.1.7-1.21.1'
+version = '0.1.8-1.21.1'
 group = 'com.mk2525.vsfluidlink'
 archivesBaseName = 'VS-Sable-HoseConnectors'
 

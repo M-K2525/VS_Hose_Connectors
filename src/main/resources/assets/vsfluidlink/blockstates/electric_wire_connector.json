@@ -1,10 +1,20 @@
 {
   "variants": {
-    "linked=false": {
-      "model": "vsfluidlink:block/electric_wire_connector"
-    },
-    "linked=true": {
-      "model": "vsfluidlink:block/electric_wire_connector_linked"
-    }
+    "facing=north,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 90 },
+    "facing=east,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 180 },
+    "facing=south,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 270 },
+    "facing=west,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 0 },
+    "facing=north,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 90 },
+    "facing=east,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180 , "y": 180 },
+    "facing=south,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 270 },
+    "facing=west,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 0 },
+    "facing=north,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 90 },
+    "facing=east,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 180 },
+    "facing=south,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 270 },
+    "facing=west,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 0 },
+    "facing=north,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 90 },
+    "facing=east,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 180 },
+    "facing=south,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 270 },
+    "facing=west,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 0 }
   }
 }

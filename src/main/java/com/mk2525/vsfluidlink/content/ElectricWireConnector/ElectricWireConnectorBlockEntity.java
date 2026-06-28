@@ -238,21 +238,24 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     }
 
     private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity) {
-        for (var direction : net.minecraft.core.Direction.values()) {
-            BlockPos neighbourPos = pos.relative(direction);
-            if (!level.isLoaded(neighbourPos)) {
-                continue;
-            }
-
-            IEnergyStorage neighbourStorage = findEnergyStorage(level, neighbourPos, direction.getOpposite());
-
-            if (neighbourStorage == null) {
-                continue;
-            }
-
-            pullFromAdjacent(blockEntity.energyStorage, neighbourStorage);
-            pushToAdjacent(blockEntity.energyStorage, neighbourStorage);
+        for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
+            transferWithAdjacent(level, pos, blockEntity, direction);
         }
+    }
+
+    private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity, net.minecraft.core.Direction direction) {
+        BlockPos neighbourPos = pos.relative(direction);
+        if (!level.isLoaded(neighbourPos)) {
+            return;
+        }
+
+        IEnergyStorage neighbourStorage = findEnergyStorage(level, neighbourPos, direction.getOpposite());
+        if (neighbourStorage == null) {
+            return;
+        }
+
+        pullFromAdjacent(blockEntity.energyStorage, neighbourStorage);
+        pushToAdjacent(blockEntity.energyStorage, neighbourStorage);
     }
 
     private static void pullFromAdjacent(IEnergyStorage localStorage, IEnergyStorage neighbourStorage) {

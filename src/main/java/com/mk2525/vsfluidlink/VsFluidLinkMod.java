@@ -1,6 +1,7 @@
 package com.mk2525.vsfluidlink;
 
 import com.mk2525.vsfluidlink.content.MagnetHoseConnector.MagnetHoseConnectorBlock;
+import com.mk2525.vsfluidlink.content.HoseConnector.HoseConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.registry.ModBlocks;
 import com.mk2525.vsfluidlink.registry.ModCreativeModeTabs;
@@ -41,7 +42,7 @@ public class VsFluidLinkMod {
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
                 ModBlockEntities.HOSE_CONNECTOR.get(),
-                (be, context) -> context == null || context == Direction.DOWN ? be.getTank() : null
+                (be, context) -> context == null || context == HoseConnectorBlock.getPipeSide(be.getBlockState()) ? be.getTank() : null
         );
 
         event.registerBlockEntity(
