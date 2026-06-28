@@ -203,7 +203,10 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.FLUID_HANDLER && side == Direction.DOWN) {
+        BlockState state = getBlockState();
+        if (cap == ForgeCapabilities.FLUID_HANDLER
+                && state.hasProperty(HoseConnectorBlock.UPSIDE_DOWN)
+                && side == HoseConnectorBlock.getPipeSide(state)) {
             return fluidHandler.cast();
         }
         return super.getCapability(cap, side);

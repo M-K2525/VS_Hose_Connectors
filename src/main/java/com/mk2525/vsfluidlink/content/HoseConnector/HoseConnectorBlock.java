@@ -5,6 +5,7 @@ import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -19,13 +20,17 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -33,20 +38,45 @@ import org.jetbrains.annotations.Nullable;
 public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
+    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final BooleanProperty UPSIDE_DOWN = BooleanProperty.create("upside_down");
 
     public HoseConnectorBlock(Properties properties) {
         super(properties.noOcclusion().strength(2.0f).requiresCorrectToolForDrops());
+        registerDefaultState(defaultBlockState()
+                .setValue(LINKED, false)
+                .setValue(HORIZONTAL_FACING, Direction.NORTH)
+                .setValue(UPSIDE_DOWN, false));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LINKED);
+        builder.add(LINKED, HORIZONTAL_FACING, UPSIDE_DOWN);
     }
 
     @Nullable
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(LINKED, false);
+        return defaultBlockState()
+                .setValue(LINKED, false)
+                .setValue(HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite())
+                .setValue(UPSIDE_DOWN, context.getClickedFace() == Direction.DOWN);
+    }
+
+    public static Direction getPipeSide(BlockState state) {
+        return state.hasProperty(UPSIDE_DOWN) && state.getValue(UPSIDE_DOWN)
+                ? Direction.UP
+                : Direction.DOWN;
+    }
+
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(HORIZONTAL_FACING, rotation.rotate(state.getValue(HORIZONTAL_FACING)));
+    }
+
+    @Override
+    public BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(HORIZONTAL_FACING)));
     }
 
     @Override
