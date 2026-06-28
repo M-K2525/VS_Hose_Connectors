@@ -80,11 +80,8 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ItemHoseConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ItemHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos, ItemHoseConnectorBlockEntity::setTargetPos);
                 }
             }
         }
@@ -115,11 +112,8 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
 
                 linkBe.setTargetPos(null);
 
-                if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ItemHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos, ItemHoseConnectorBlockEntity::setTargetPos);
                     level.playSound(null, targetPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
                 }
 

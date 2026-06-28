@@ -69,6 +69,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
+        VSLinkUtil.registerLinkBlockEntity(this);
         if (level != null && !level.isClientSide) {
             ALL_CONNECTORS.add(getBlockPos());
         }
@@ -76,6 +77,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
 
     @Override
     public void remove() {
+        VSLinkUtil.unregisterLinkBlockEntity(this);
         super.remove();
         if (level != null && !level.isClientSide) {
             ALL_CONNECTORS.remove(getBlockPos());
@@ -106,17 +108,19 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         
         if (!level.isClientSide) {
             sendData();
-            updateOwnActivity();
-            if (isLinked) {
-                if (level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetBe) {
-                    targetBe.updateOwnActivity();
-                }
+        updateOwnActivity();
+        if (isLinked) {
+            ItemMagnetHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+            if (targetBe != null) {
+                targetBe.updateOwnActivity();
             }
-            if (wasLinked) {
-                 if (level.getBlockEntity(oldTarget) instanceof ItemMagnetHoseConnectorBlockEntity oldTargetBe) {
-                    oldTargetBe.updateOwnActivity();
-                }
+        }
+        if (wasLinked) {
+             ItemMagnetHoseConnectorBlockEntity oldTargetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, oldTarget, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+             if (oldTargetBe != null) {
+                oldTargetBe.updateOwnActivity();
             }
+        }
         }
     }
     
@@ -148,9 +152,12 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         super.onSpeedChanged(prevSpeed);
         if (level != null && !level.isClientSide) {
             updateOwnActivity();
-            if (targetPos != null && level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetBe) {
+        if (targetPos != null) {
+            ItemMagnetHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+            if (targetBe != null) {
                 targetBe.updateOwnActivity();
             }
+        }
         }
     }
 
@@ -160,8 +167,9 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         LinkActivity activity = LinkActivity.NONE;
         float mySpeed = Math.abs(getSpeed());
 
-        if (targetPos != null && level.isLoaded(targetPos)) {
-            if (level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetBe) {
+        if (targetPos != null) {
+            ItemMagnetHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+            if (targetBe != null) {
                 float targetSpeed = Math.abs(targetBe.getSpeed());
                 if (mySpeed >= 32 && targetSpeed < 32) {
                     activity = LinkActivity.SEND;
@@ -193,18 +201,17 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
                     return;
                 }
 
-                if (!level.isLoaded(targetPos) || !(level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity)) {
-                    disconnect();
-                    return;
-                }
+            ItemMagnetHoseConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+            if (targetLink == null) {
+                disconnect();
+                return;
+            }
 
-                BlockEntity targetBe = level.getBlockEntity(targetPos);
-                if (targetBe instanceof ItemMagnetHoseConnectorBlockEntity targetLink) {
-                     if (targetLink.getBlockState().getValue(ItemMagnetHoseConnectorBlock.POWERED)) {
-                        disconnect();
-                        return;
-                    }
-                }
+            BlockEntity targetBe = targetLink;
+            if (targetLink.getBlockState().getValue(ItemMagnetHoseConnectorBlock.POWERED)) {
+                disconnect();
+                return;
+            }
 
                 VSLinkUtil.WorldTransform myTransform = getWorldTransform(false);
                 VSLinkUtil.WorldTransform targetTransform = ((ItemMagnetHoseConnectorBlockEntity)targetBe).getWorldTransform(false);
@@ -231,9 +238,10 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
             }
         }
 
-        if (targetPos != null && getBlockState().getValue(ItemMagnetHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
-            if (level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetLink) {
-                ItemStack myStack = inventory.getStackInSlot(0);
+    if (targetPos != null && getBlockState().getValue(ItemMagnetHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
+        ItemMagnetHoseConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos);
+        if (targetLink != null) {
+            ItemStack myStack = inventory.getStackInSlot(0);
                 if (!myStack.isEmpty()) {
                     ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);
                     inventory.setStackInSlot(0, remaining);
@@ -246,10 +254,8 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         BlockPos oldTarget = targetPos;
         setTargetPos(null);
         
-        if (oldTarget != null && level.isLoaded(oldTarget)) {
-            if (level.getBlockEntity(oldTarget) instanceof ItemMagnetHoseConnectorBlockEntity targetLink) {
-                targetLink.setTargetPos(null);
-            }
+        if (oldTarget != null) {
+            VSLinkUtil.clearReciprocalLink(level, worldPosition, oldTarget, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos, ItemMagnetHoseConnectorBlockEntity::setTargetPos);
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
         }
         

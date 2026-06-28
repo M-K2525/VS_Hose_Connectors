@@ -77,11 +77,8 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ChainConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ChainConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ChainConnectorBlockEntity.class, ChainConnectorBlockEntity::getTargetPos, ChainConnectorBlockEntity::setTargetPos);
                 }
             }
         }
@@ -112,11 +109,8 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
                 linkBe.setTargetPos(null);
 
-                if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ChainConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ChainConnectorBlockEntity.class, ChainConnectorBlockEntity::getTargetPos, ChainConnectorBlockEntity::setTargetPos);
                     level.playSound(null, targetPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
                 }
 

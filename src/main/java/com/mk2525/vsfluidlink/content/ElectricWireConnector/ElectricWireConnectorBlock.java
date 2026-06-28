@@ -55,11 +55,8 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ElectricWireConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ElectricWireConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ElectricWireConnectorBlockEntity.class, ElectricWireConnectorBlockEntity::getTargetPos, ElectricWireConnectorBlockEntity::setTargetPos);
                 }
             }
         }
@@ -90,11 +87,8 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
                 
                 linkBe.setTargetPos(null);
                 
-                if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ElectricWireConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ElectricWireConnectorBlockEntity.class, ElectricWireConnectorBlockEntity::getTargetPos, ElectricWireConnectorBlockEntity::setTargetPos);
                     level.playSound(null, targetPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
                 }
                 

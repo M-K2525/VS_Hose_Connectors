@@ -55,11 +55,8 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof HoseConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof HoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, HoseConnectorBlockEntity.class, HoseConnectorBlockEntity::getTargetPos, HoseConnectorBlockEntity::setTargetPos);
                 }
             }
         }
@@ -90,11 +87,8 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                 
                 linkBe.setTargetPos(null);
                 
-                if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof HoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, HoseConnectorBlockEntity.class, HoseConnectorBlockEntity::getTargetPos, HoseConnectorBlockEntity::setTargetPos);
                     level.playSound(null, targetPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
                 }
                 

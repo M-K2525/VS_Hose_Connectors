@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector;
 
 import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
+import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -63,11 +64,8 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ElectricMagnetWireConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ElectricMagnetWireConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ElectricMagnetWireConnectorBlockEntity.class, ElectricMagnetWireConnectorBlockEntity::getTargetPos, ElectricMagnetWireConnectorBlockEntity::setTargetPos);
                 }
             }
         }

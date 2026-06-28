@@ -3,6 +3,7 @@ package com.mk2525.vsfluidlink.content.ItemMagnetHoseConnector;
 import com.mk2525.vsfluidlink.content.ItemHoseConnecotor.ItemHoseConnectorBlock;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
+import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
@@ -85,11 +86,8 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof ItemMagnetHoseConnectorBlockEntity linkBe) {
                 BlockPos targetPos = linkBe.getTargetPos();
-                if (targetPos != null && level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = level.getBlockEntity(targetPos);
-                    if (targetBe instanceof ItemMagnetHoseConnectorBlockEntity targetLinkBe) {
-                        targetLinkBe.setTargetPos(null);
-                    }
+                if (targetPos != null) {
+                    VSLinkUtil.clearReciprocalLink(level, pos, targetPos, ItemMagnetHoseConnectorBlockEntity.class, ItemMagnetHoseConnectorBlockEntity::getTargetPos, ItemMagnetHoseConnectorBlockEntity::setTargetPos);
                 }
             }
         }

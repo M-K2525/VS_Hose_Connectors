@@ -73,6 +73,18 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        VSLinkUtil.registerLinkBlockEntity(this);
+    }
+
+    @Override
+    public void setRemoved() {
+        VSLinkUtil.unregisterLinkBlockEntity(this);
+        super.setRemoved();
+    }
+
+    @Override
     public AABB getRenderBoundingBox() {
         return INFINITE_EXTENT_AABB;
     }
@@ -136,10 +148,8 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         }
 
         try {
-            if (!level.isLoaded(blockEntity.targetPos)) return;
-
-            BlockEntity targetBe = level.getBlockEntity(blockEntity.targetPos);
-            if (!(targetBe instanceof ElectricWireConnectorBlockEntity targetLink)) {
+            ElectricWireConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, pos, blockEntity.targetPos, ElectricWireConnectorBlockEntity.class, ElectricWireConnectorBlockEntity::getTargetPos);
+            if (targetLink == null) {
                 blockEntity.setTargetPos(null);
                 blockEntity.setChanged();
                 return;

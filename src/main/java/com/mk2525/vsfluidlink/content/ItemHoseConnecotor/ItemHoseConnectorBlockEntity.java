@@ -53,6 +53,12 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        VSLinkUtil.registerLinkBlockEntity(this);
+    }
+
+    @Override
     public float calculateStressApplied() {
         return 2.0f;
     }
@@ -60,6 +66,12 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     @Override
     public AABB getRenderBoundingBox() {
         return INFINITE_EXTENT_AABB;
+    }
+
+    @Override
+    public void remove() {
+        VSLinkUtil.unregisterLinkBlockEntity(this);
+        super.remove();
     }
 
     public void setTargetPos(BlockPos targetPos) {
@@ -83,12 +95,14 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
             sendData();
             updateOwnActivity();
             if (isLinked) {
-                if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
+                ItemHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
+                if (targetBe != null) {
                     targetBe.updateOwnActivity();
                 }
             }
             if (wasLinked) {
-                 if (level.getBlockEntity(oldTarget) instanceof ItemHoseConnectorBlockEntity oldTargetBe) {
+                 ItemHoseConnectorBlockEntity oldTargetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, oldTarget, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
+                 if (oldTargetBe != null) {
                     oldTargetBe.updateOwnActivity();
                 }
             }
@@ -104,8 +118,11 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         super.onSpeedChanged(prevSpeed);
         if (level != null && !level.isClientSide) {
             updateOwnActivity();
-            if (targetPos != null && level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
-                targetBe.updateOwnActivity();
+            if (targetPos != null) {
+                ItemHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
+                if (targetBe != null) {
+                    targetBe.updateOwnActivity();
+                }
             }
         }
     }
@@ -116,8 +133,9 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         LinkActivity activity = LinkActivity.NONE;
         float mySpeed = Math.abs(getSpeed());
 
-        if (targetPos != null && level.isLoaded(targetPos)) {
-            if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetBe) {
+        if (targetPos != null) {
+            ItemHoseConnectorBlockEntity targetBe = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
+            if (targetBe != null) {
                 float targetSpeed = Math.abs(targetBe.getSpeed());
                 if (mySpeed >= 32 && targetSpeed < 32) {
                     activity = LinkActivity.SEND;
@@ -142,7 +160,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
             if (checkCooldown-- <= 0) {
                 checkCooldown = 20; // 1秒に1回チェック
 
-                if (!level.isLoaded(targetPos) || !(level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity)) {
+                if (VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos) == null) {
                     setTargetPos(null);
                     return;
                 }
@@ -155,11 +173,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
                     BlockPos oldTarget = targetPos;
                     setTargetPos(null);
 
-                    if (level.isLoaded(oldTarget)) {
-                        if (level.getBlockEntity(oldTarget) instanceof ItemHoseConnectorBlockEntity targetLink) {
-                            targetLink.setTargetPos(null);
-                        }
-                    }
+                    VSLinkUtil.clearReciprocalLink(level, worldPosition, oldTarget, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos, ItemHoseConnectorBlockEntity::setTargetPos);
 
                     level.playSound(null, worldPosition, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.5f);
                     return;
@@ -168,7 +182,8 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         }
 
         if (targetPos != null && getBlockState().getValue(ItemHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
-            if (level.getBlockEntity(targetPos) instanceof ItemHoseConnectorBlockEntity targetLink) {
+            ItemHoseConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
+            if (targetLink != null) {
                 ItemStack myStack = inventory.getStackInSlot(0);
                 if (!myStack.isEmpty()) {
                     ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);

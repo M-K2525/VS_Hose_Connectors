@@ -193,11 +193,8 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
         BlockPos oldTarget = blockEntity.getTargetPos();
         blockEntity.setTargetPos(null);
         
-        if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = level.getBlockEntity(oldTarget);
-            if (targetBe instanceof ElectricMagnetWireConnectorBlockEntity targetLinkBe) {
-                targetLinkBe.setTargetPos(null);
-            }
+        if (oldTarget != null) {
+            VSLinkUtil.clearReciprocalLink(level, pos, oldTarget, ElectricMagnetWireConnectorBlockEntity.class, ElectricMagnetWireConnectorBlockEntity::getTargetPos, ElectricMagnetWireConnectorBlockEntity::setTargetPos);
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
         }
         level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);

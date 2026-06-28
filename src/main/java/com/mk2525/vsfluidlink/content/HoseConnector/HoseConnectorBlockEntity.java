@@ -60,6 +60,18 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        VSLinkUtil.registerLinkBlockEntity(this);
+    }
+
+    @Override
+    public void setRemoved() {
+        VSLinkUtil.unregisterLinkBlockEntity(this);
+        super.setRemoved();
+    }
+
+    @Override
     public AABB getRenderBoundingBox() {
         return INFINITE_EXTENT_AABB;
     }
@@ -128,10 +140,8 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
         }
 
         try {
-            if (!level.isLoaded(blockEntity.targetPos)) return;
-
-            BlockEntity targetBe = level.getBlockEntity(blockEntity.targetPos);
-            if (!(targetBe instanceof HoseConnectorBlockEntity targetLink)) {
+            HoseConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, pos, blockEntity.targetPos, HoseConnectorBlockEntity.class, HoseConnectorBlockEntity::getTargetPos);
+            if (targetLink == null) {
                 blockEntity.setTargetPos(null);
                 blockEntity.setChanged();
                 return;

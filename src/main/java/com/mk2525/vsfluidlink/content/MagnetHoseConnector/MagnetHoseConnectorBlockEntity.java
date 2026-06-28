@@ -199,11 +199,8 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         BlockPos oldTarget = blockEntity.getTargetPos();
         blockEntity.setTargetPos(null);
         
-        if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = level.getBlockEntity(oldTarget);
-            if (targetBe instanceof MagnetHoseConnectorBlockEntity targetLinkBe) {
-                targetLinkBe.setTargetPos(null);
-            }
+        if (oldTarget != null) {
+            VSLinkUtil.clearReciprocalLink(level, pos, oldTarget, MagnetHoseConnectorBlockEntity.class, MagnetHoseConnectorBlockEntity::getTargetPos, MagnetHoseConnectorBlockEntity::setTargetPos);
             level.playSound(null, oldTarget, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);
         }
         level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 0.7f);

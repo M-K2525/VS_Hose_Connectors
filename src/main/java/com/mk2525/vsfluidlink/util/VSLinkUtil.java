@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -12,14 +13,73 @@ import org.slf4j.Logger;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
+import java.util.WeakHashMap;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class VSLinkUtil {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Set<String> printedMethods = new HashSet<>();
     private static final Set<String> printedQueryableMethods = new HashSet<>();
+    private static final Set<BlockEntity> LINK_BLOCK_ENTITIES = Collections.newSetFromMap(new WeakHashMap<>());
+
+    public static void registerLinkBlockEntity(BlockEntity blockEntity) {
+        if (blockEntity != null && blockEntity.getLevel() != null && !blockEntity.getLevel().isClientSide) {
+            LINK_BLOCK_ENTITIES.add(blockEntity);
+        }
+    }
+
+    public static void unregisterLinkBlockEntity(BlockEntity blockEntity) {
+        if (blockEntity != null) {
+            LINK_BLOCK_ENTITIES.remove(blockEntity);
+        }
+    }
+
+    public static <T extends BlockEntity> boolean clearReciprocalLink(Level level, BlockPos selfPos, BlockPos targetPos, Class<T> type, Function<T, BlockPos> targetGetter, BiConsumer<T, BlockPos> targetSetter) {
+        T target = findReciprocalLink(level, selfPos, targetPos, type, targetGetter);
+        if (target != null) {
+            targetSetter.accept(target, null);
+            return true;
+        }
+        return false;
+    }
+
+    public static <T extends BlockEntity> T findReciprocalLink(Level level, BlockPos selfPos, BlockPos targetPos, Class<T> type, Function<T, BlockPos> targetGetter) {
+        T direct = getLinkedBlockEntity(level, targetPos, type);
+        if (direct != null && selfPos.equals(targetGetter.apply(direct))) {
+            return direct;
+        }
+
+        for (BlockEntity candidate : Set.copyOf(LINK_BLOCK_ENTITIES)) {
+            if (!type.isInstance(candidate) || candidate.isRemoved() || candidate.getLevel() != level) {
+                continue;
+            }
+            if (!candidate.getBlockPos().equals(targetPos)) {
+                continue;
+            }
+            T typed = type.cast(candidate);
+            if (selfPos.equals(targetGetter.apply(typed))) {
+                return typed;
+            }
+        }
+        return null;
+    }
+
+    public static <T extends BlockEntity> boolean isReciprocalLink(Level level, BlockPos selfPos, BlockPos targetPos, Class<T> type, Function<T, BlockPos> targetGetter) {
+        return findReciprocalLink(level, selfPos, targetPos, type, targetGetter) != null;
+    }
+
+    private static <T extends BlockEntity> T getLinkedBlockEntity(Level level, BlockPos pos, Class<T> type) {
+        if (level == null || pos == null || !level.isLoaded(pos)) {
+            return null;
+        }
+        BlockEntity blockEntity = level.getBlockEntity(pos);
+        return type.isInstance(blockEntity) ? type.cast(blockEntity) : null;
+    }
 
     private static Object getShipManagingPos(Level level, BlockPos pos) {
         if (level == null) return null;
@@ -188,6 +248,60 @@ public class VSLinkUtil {
         );
     }
 
+    public static Vec3 worldVectorToLocal(Level level, BlockPos origin, Vec3 worldVector) {
+        Vec3 transformed = transformVsWorldVectorToLocal(level, origin, worldVector, false);
+        return transformed != null ? transformed : worldVector;
+    }
+
+    public static Vec3 localVectorToWorld(Level level, BlockPos origin, Vec3 localVector) {
+        Vec3 transformed = transformVsLocalVectorToWorld(level, origin, localVector, false);
+        return transformed != null ? transformed : localVector;
+    }
+
+    private static Vec3 transformVsWorldVectorToLocal(Level level, BlockPos origin, Vec3 worldVector, boolean render) {
+        Object ship = getShipManagingPos(level, origin);
+        if (ship == null) return null;
+
+        try {
+            Method getTransform = ship.getClass().getMethod(render ? "getRenderTransform" : "getTransform");
+            Object transform = getTransform.invoke(ship);
+
+            Method getWorldToShip = transform.getClass().getMethod("getWorldToShip");
+            Object worldToShipMatrix = getWorldToShip.invoke(transform);
+
+            Vector3d result = new Vector3d(worldVector.x, worldVector.y, worldVector.z);
+            Class<?> matrix4dcClass = Class.forName("org.joml.Matrix4dc");
+            Method transformDirection = matrix4dcClass.getMethod("transformDirection", Vector3d.class);
+            transformDirection.invoke(worldToShipMatrix, result);
+            return new Vec3(result.x, result.y, result.z);
+        } catch (Exception e) {
+            LOGGER.debug("[VS Fluid Link] VS inverse vector transform failed for pos: {}", origin, e);
+            return null;
+        }
+    }
+
+    private static Vec3 transformVsLocalVectorToWorld(Level level, BlockPos origin, Vec3 localVector, boolean render) {
+        Object ship = getShipManagingPos(level, origin);
+        if (ship == null) return null;
+
+        try {
+            Method getTransform = ship.getClass().getMethod(render ? "getRenderTransform" : "getTransform");
+            Object transform = getTransform.invoke(ship);
+
+            Method getShipToWorld = transform.getClass().getMethod("getShipToWorld");
+            Object shipToWorldMatrix = getShipToWorld.invoke(transform);
+
+            Vector3d result = new Vector3d(localVector.x, localVector.y, localVector.z);
+            Class<?> matrix4dcClass = Class.forName("org.joml.Matrix4dc");
+            Method transformDirection = matrix4dcClass.getMethod("transformDirection", Vector3d.class);
+            transformDirection.invoke(shipToWorldMatrix, result);
+            return new Vec3(result.x, result.y, result.z);
+        } catch (Exception e) {
+            LOGGER.debug("[VS Fluid Link] VS vector transform failed for pos: {}", origin, e);
+            return null;
+        }
+    }
+
     @OnlyIn(Dist.CLIENT)
     public static class Client {
         public static Vec3 getRenderWorldPos(Level level, BlockPos pos) {
@@ -242,6 +356,16 @@ public class VSLinkUtil {
                 new Vec3(posInShip.x, posInShip.y, posInShip.z),
                 new Vec3(dirInShip.x, dirInShip.y, dirInShip.z).normalize()
             );
+        }
+
+        public static Vec3 renderWorldVectorToLocal(Level level, BlockPos origin, Vec3 worldVector) {
+            Vec3 transformed = transformVsWorldVectorToLocal(level, origin, worldVector, true);
+            return transformed != null ? transformed : worldVector;
+        }
+
+        public static Vec3 renderLocalVectorToWorld(Level level, BlockPos origin, Vec3 localVector) {
+            Vec3 transformed = transformVsLocalVectorToWorld(level, origin, localVector, true);
+            return transformed != null ? transformed : localVector;
         }
     }
 }
