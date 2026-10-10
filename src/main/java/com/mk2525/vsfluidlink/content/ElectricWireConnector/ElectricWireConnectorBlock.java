@@ -238,7 +238,7 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ElectricWireConnectorBlockEntity(pos, state);
+        return com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat.create(pos, state);
     }
 
     @Override

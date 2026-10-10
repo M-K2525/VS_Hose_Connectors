@@ -45,6 +45,11 @@ neoForge {
 
 repositories {
     maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven { url = 'https://maven.architectury.dev' }
+    maven {
         url = 'https://maven.squiddev.cc'
         content { includeGroup 'cc.tweaked' }
     }
@@ -67,6 +72,14 @@ repositories {
 }
 
 dependencies {
+    // Pin the NeoForge 1.21.1 release ID: "0.6.2" also names a Forge 1.20.1 artifact.
+    compileOnly 'maven.modrinth:power-grid:jCkPHjmP'
+    testImplementation 'maven.modrinth:power-grid:jCkPHjmP'
+    testImplementation 'org.ejml:ejml-simple:0.44.0'
+    if (providers.gradleProperty('withPowerGrid').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly 'maven.modrinth:power-grid:jCkPHjmP'
+        runtimeOnly 'dev.architectury:architectury-neoforge:13.0.8'
+    }
     compileOnly 'cc.tweaked:cc-tweaked-1.21.1-forge-api:1.120.2'
     testImplementation 'cc.tweaked:cc-tweaked-1.21.1-forge-api:1.120.2'
     if (providers.gradleProperty('withComputerCraft').map { it.toBoolean() }.getOrElse(false)) {
@@ -117,4 +130,19 @@ jar {
 test {
     useJUnitPlatform()
     systemProperty 'withComputerCraft', providers.gradleProperty('withComputerCraft').getOrElse('false')
+    exclude '**/compat/powergrid/**'
+    if (!providers.gradleProperty('withPowerGrid').map { it.toBoolean() }.getOrElse(false)) {
+        classpath = sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('power-grid-') }
+    }
 }
+
+// PG's simulation API and Minecraft types must use a single loader in unit tests.
+tasks.register('powerGridTest', Test) {
+    useJUnitPlatform()
+    workingDir = layout.buildDirectory.dir('powergrid-test-run').get().asFile
+    doFirst { workingDir.mkdirs() }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('junit-fml-') }
+    include '**/compat/powergrid/**'
+}
+tasks.named('check') { dependsOn 'powerGridTest' }

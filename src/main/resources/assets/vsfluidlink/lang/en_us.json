@@ -1,4 +1,5 @@
 {
+  "vsfluidlink.powergrid.terminal": "Power Grid Terminal",
   "vsfluidlink.configuration.title": "%s Settings",
   "vsfluidlink.configuration.general": "Connection Settings",
   "vsfluidlink.configuration.buffers": "Buffer Settings",

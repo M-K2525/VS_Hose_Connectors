@@ -88,7 +88,7 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ElectricMagnetWireConnectorBlockEntity(pos, state);
+        return com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat.createMagnet(pos, state);
     }
 
     @Override

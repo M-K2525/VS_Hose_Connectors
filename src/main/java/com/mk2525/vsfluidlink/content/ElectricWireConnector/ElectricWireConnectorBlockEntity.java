@@ -1,19 +1,19 @@
 package com.mk2525.vsfluidlink.content.ElectricWireConnector;
 
 import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
+import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mk2525.vsfluidlink.compat.computercraft.ComputerCraftCompat;
 import com.mk2525.vsfluidlink.compat.computercraft.WiredConnection;
+import com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 
 import java.util.List;
 
-public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
+public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int NEIGHBOR_TRANSFER_RATE = 10000;
 
@@ -76,6 +76,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     private Long targetSpaceId;
     private long lastTransferTick = -1;
     private @Nullable WiredConnection wiredConnection;
+    private long lastBehaviourTick = Long.MIN_VALUE;
 
     public ElectricWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -83,6 +84,17 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
     public ElectricWireConnectorBlockEntity(BlockPos pos, BlockState state) {
         this(ModBlockEntities.ELECTRIC_WIRE_CONNECTOR.get(), pos, state);
+    }
+
+    @Override
+    public void addBehaviours(List<BlockEntityBehaviour> behaviours) {}
+
+    protected void connectorLinkChanged() { PowerGridCompat.linkChanged(this); }
+
+    @Override
+    public void remove() {
+        PowerGridCompat.remove(this);
+        super.remove();
     }
 
     public AABB getRenderBoundingBox() {
@@ -111,6 +123,10 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
         if (!level.isClientSide) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            if (level.getServer() != null) {
+                if (level.getServer().isSameThread()) connectorLinkChanged();
+                else level.getServer().execute(this::connectorLinkChanged);
+            }
             WiredConnection connection = wiredConnection;
             if (connection != null && level.getServer() != null) {
                 if (level.getServer().isSameThread()) connection.linkChanged();
@@ -132,7 +148,8 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+    protected void read(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
+        super.read(tag, provider, clientPacket);
         energyStorage.applyCapacity();
         if (tag.contains("Energy")) {
             energyStorage.setEnergyStored(tag.getInt("Energy"));
@@ -166,6 +183,11 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     }
 
     public void tickWiredConnection() {
+        if (level != null && (level.isClientSide || level.getServer() != null && level.getServer().isSameThread())
+                && lastBehaviourTick != level.getGameTime()) {
+            lastBehaviourTick = level.getGameTime();
+            tick();
+        }
         WiredConnection connection = getWiredConnection();
         if (connection != null) connection.tick();
     }
@@ -179,42 +201,29 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     }
 
     @Override
-    public void setRemoved() {
+    public void invalidate() {
         removeWiredConnection();
-        super.setRemoved();
+        super.invalidate();
     }
 
     @Override
     public void onChunkUnloaded() {
-        removeWiredConnection();
+        invalidate();
         super.onChunkUnloaded();
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+    protected void write(CompoundTag tag, HolderLookup.Provider provider, boolean clientPacket) {
+        super.write(tag, provider, clientPacket);
         tag.putInt("Energy", energyStorage.getEnergyStored());
         if (targetPos != null) {
             tag.put("TargetPos", new com.mk2525.vsfluidlink.util.LinkTarget(targetPos, targetSpaceId).toTag());
         }
     }
 
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
-        CompoundTag tag = super.getUpdateTag(provider);
-        saveAdditional(tag, provider);
-        return tag;
-    }
-
-    @Nullable
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricWireConnectorBlockEntity blockEntity) {
-        if (level.isClientSide) return;
-
         blockEntity.tickWiredConnection();
+        if (level.isClientSide) return;
 
         transferWithAdjacent(level, pos, blockEntity);
 

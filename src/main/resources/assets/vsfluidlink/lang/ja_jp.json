@@ -1,4 +1,5 @@
 {
+  "vsfluidlink.powergrid.terminal": "Power Grid端子",
   "vsfluidlink.configuration.title": "%s の設定",
   "vsfluidlink.configuration.general": "接続設定",
   "vsfluidlink.configuration.buffers": "バッファー設定",
