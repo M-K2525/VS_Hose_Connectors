@@ -41,9 +41,14 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         public void setEnergyStored(int energy) {
             this.energy = Math.max(0, Math.min(capacity, energy));
         }
+
+        public void applyCapacity() {
+            capacity = VsFluidLinkConfig.energyCapacity();
+            setEnergyStored(energy);
+        }
     }
 
-    protected final MutableEnergyStorage energyStorage = new MutableEnergyStorage(10000, 10000, 10000) {
+    protected final MutableEnergyStorage energyStorage = new MutableEnergyStorage(VsFluidLinkConfig.energyCapacity(), 10000, 10000) {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
             int received = super.receiveEnergy(maxReceive, simulate);
@@ -120,6 +125,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
+        energyStorage.applyCapacity();
         if (tag.contains("Energy")) {
             energyStorage.setEnergyStored(tag.getInt("Energy"));
         }
@@ -132,6 +138,12 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
             targetPos = null;
             targetSpaceId = null;
         }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        energyStorage.applyCapacity();
     }
 
     @Override

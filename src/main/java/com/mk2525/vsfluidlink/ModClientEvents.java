@@ -15,16 +15,22 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import org.slf4j.Logger;
 
-@EventBusSubscriber(modid = VsFluidLinkMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = VsFluidLinkMod.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ModClientEvents {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        ModList.get().getModContainerById(VsFluidLinkMod.MOD_ID).orElseThrow()
+                .registerExtensionPoint(IConfigScreenFactory.class, (IConfigScreenFactory) ConfigurationScreen::new);
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.HOSE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGNET_HOSE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ITEM_HOSE_CONNECTOR.get(), RenderType.cutout());

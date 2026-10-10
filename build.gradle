@@ -4,7 +4,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.140'
 }
 
-version = '0.1.9-1.21.1'
+version = '0.2.0-1.21.1'
 group = 'com.mk2525.vsfluidlink'
 archivesBaseName = 'VS-Sable-HoseConnectors'
 
@@ -36,6 +36,11 @@ neoForge {
             sourceSet sourceSets.main
         }
     }
+
+    unitTest {
+        enable()
+        testedMod = mods.vsfluidlink
+    }
 }
 
 repositories {
@@ -58,6 +63,8 @@ repositories {
 }
 
 dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
     // Create for NeoForge 1.21.1
     // 以前の差分で libs 内の jar を参照していたため、それに合わせます
     implementation files('libs/create-1.21.1-6.0.9.jar')
@@ -95,4 +102,8 @@ jar {
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
+}
+
+test {
+    useJUnitPlatform()
 }

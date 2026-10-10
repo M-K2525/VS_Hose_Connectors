@@ -4,6 +4,7 @@ import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
+import com.mk2525.vsfluidlink.util.ConnectorItemBuffer;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -14,14 +15,12 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.slf4j.Logger;
 
@@ -40,7 +39,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
 
     private static final Set<BlockPos> ALL_CONNECTORS = Collections.synchronizedSet(new HashSet<>());
 
-    protected final ItemStackHandler inventory = new ItemStackHandler(1) {
+    protected final ConnectorItemBuffer inventory = new ConnectorItemBuffer() {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -68,6 +67,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
 
     @Override
     public void onLoad() {
+        inventory.applyConfiguredSize();
         super.onLoad();
         if (level != null && !level.isClientSide) {
             ALL_CONNECTORS.add(getBlockPos());
@@ -224,11 +224,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
 
         if (targetPos != null && getBlockState().getValue(ItemMagnetHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
             if (level.getBlockEntity(targetPos) instanceof ItemMagnetHoseConnectorBlockEntity targetLink) {
-                ItemStack myStack = inventory.getStackInSlot(0);
-                if (!myStack.isEmpty()) {
-                    ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);
-                    inventory.setStackInSlot(0, remaining);
-                }
+                inventory.transferTo(targetLink.inventory);
             }
         }
     }

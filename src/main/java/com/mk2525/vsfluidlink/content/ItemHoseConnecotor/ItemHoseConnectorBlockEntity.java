@@ -4,6 +4,7 @@ import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
+import com.mk2525.vsfluidlink.util.ConnectorItemBuffer;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -15,12 +16,10 @@ import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour
 import java.util.List;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.slf4j.Logger;
 
@@ -31,7 +30,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     }
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    protected final ItemStackHandler inventory = new ItemStackHandler(1) {
+    protected final ConnectorItemBuffer inventory = new ConnectorItemBuffer() {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -51,6 +50,12 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
 
     public ItemHoseConnectorBlockEntity(BlockPos pos, BlockState state) {
         this(ModBlockEntities.ITEM_HOSE_CONNECTOR.get(), pos, state);
+    }
+
+    @Override
+    public void onLoad() {
+        inventory.applyConfiguredSize();
+        super.onLoad();
     }
 
     @Override
@@ -178,11 +183,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
 
         if (targetPos != null && getBlockState().getValue(ItemHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
             if (VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ItemHoseConnectorBlockEntity.class) instanceof ItemHoseConnectorBlockEntity targetLink) {
-                ItemStack myStack = inventory.getStackInSlot(0);
-                if (!myStack.isEmpty()) {
-                    ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);
-                    inventory.setStackInSlot(0, remaining);
-                }
+                inventory.transferTo(targetLink.inventory);
             }
         }
     }

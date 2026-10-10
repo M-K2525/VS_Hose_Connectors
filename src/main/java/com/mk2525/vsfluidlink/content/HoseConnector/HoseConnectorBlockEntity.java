@@ -30,7 +30,7 @@ import java.util.List;
 
 public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
-    protected final FluidTank tank = new FluidTank(1000) {
+    protected final FluidTank tank = new FluidTank(VsFluidLinkConfig.fluidCapacity()) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -96,6 +96,7 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
         tank.readFromNBT(provider, tag.getCompound("Tank"));
+        applyBufferCapacity();
         if (tag.contains("TargetPos")) {
             CompoundTag targetTag = tag.getCompound("TargetPos");
             com.mk2525.vsfluidlink.util.LinkTarget target = com.mk2525.vsfluidlink.util.LinkTarget.fromTag(targetTag);
@@ -104,6 +105,20 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
         } else {
             targetPos = null;
             targetSpaceId = null;
+        }
+    }
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        applyBufferCapacity();
+    }
+
+    private void applyBufferCapacity() {
+        tank.setCapacity(VsFluidLinkConfig.fluidCapacity());
+        if (tank.getFluidAmount() > tank.getCapacity()) {
+            tank.setFluid(tank.getFluid().copyWithAmount(tank.getCapacity()));
+            setChanged();
         }
     }
 
