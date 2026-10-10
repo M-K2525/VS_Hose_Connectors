@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ItemMagnetHoseConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.content.ItemHoseConnecotor.ItemHoseConnectorBlock;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
@@ -7,6 +9,8 @@ import com.simibubi.create.content.kinetics.base.DirectionalKineticBlock;
 import com.simibubi.create.content.kinetics.base.IRotate;
 import com.simibubi.create.foundation.block.IBE;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -30,7 +34,7 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
 
     public ItemMagnetHoseConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
-        registerDefaultState(defaultBlockState()
+        registerDefaultState(defaultBlockState().setValue(ConnectorOrientation.ROLL, 0)
                 .setValue(POWERED, false)
                 .setValue(LINKED, false)
                 .setValue(ACTIVITY, LinkActivity.NONE));
@@ -39,7 +43,7 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(POWERED, LINKED, ACTIVITY);
+        builder.add(POWERED, LINKED, ACTIVITY, ConnectorOrientation.ROLL);
     }
 
     @Override
@@ -53,16 +57,14 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
 
     @Override
     public Axis getRotationAxis(BlockState state) {
-        Direction facing = state.getValue(FACING);
-        if (facing.getAxis().isVertical()) {
-            return Axis.X;
-        }
-        // North/South (Z軸) のときは East/West (X軸) に接続
-        if (facing.getAxis() == Axis.Z) {
-            return Axis.X;
-        }
-        // East/West (X軸) のときは North/South (Z軸) に接続
-        return Axis.Z;
+        return ConnectorOrientation.shaftAxis(state);
+    }
+
+    @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        return super.areStatesKineticallyEquivalent(oldState, newState)
+                && oldState.getValue(FACING) == newState.getValue(FACING)
+                && oldState.getValue(ConnectorOrientation.ROLL).equals(newState.getValue(ConnectorOrientation.ROLL));
     }
 
     @Override
@@ -115,5 +117,14 @@ public class ItemMagnetHoseConnectorBlock extends DirectionalKineticBlock implem
     @Override
     public IRotate.SpeedLevel getMinimumRequiredSpeedLevel() {
         return IRotate.SpeedLevel.MEDIUM;
+    }
+    @Override
+    public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        return ConnectorOrientation.onSneakWrenched(state, context);
+    }
+
+    @Override
+    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        return InteractionResult.PASS;
     }
 }

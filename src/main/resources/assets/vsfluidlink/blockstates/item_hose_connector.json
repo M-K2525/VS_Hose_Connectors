@@ -1,28 +1,312 @@
 {
   "variants": {
-    "activity=none,linked=false,facing=north": { "model": "vsfluidlink:block/item_hose_connector_none" },
-    "activity=none,linked=false,facing=south": { "model": "vsfluidlink:block/item_hose_connector_none", "y": 180 },
-    "activity=none,linked=false,facing=west":  { "model": "vsfluidlink:block/item_hose_connector_none", "y": 270 },
-    "activity=none,linked=false,facing=east":  { "model": "vsfluidlink:block/item_hose_connector_none", "y": 90 },
-    "activity=none,linked=false,facing=up":    { "model": "vsfluidlink:block/item_hose_connector_none", "x": -90 },
-    "activity=none,linked=false,facing=down":  { "model": "vsfluidlink:block/item_hose_connector_none", "x": 90 },
-    "activity=none,linked=true,facing=north": { "model": "vsfluidlink:block/item_hose_connector_linked_none" },
-    "activity=none,linked=true,facing=south": { "model": "vsfluidlink:block/item_hose_connector_linked_none", "y": 180 },
-    "activity=none,linked=true,facing=west":  { "model": "vsfluidlink:block/item_hose_connector_linked_none", "y": 270 },
-    "activity=none,linked=true,facing=east":  { "model": "vsfluidlink:block/item_hose_connector_linked_none", "y": 90 },
-    "activity=none,linked=true,facing=up":    { "model": "vsfluidlink:block/item_hose_connector_linked_none", "x": -90 },
-    "activity=none,linked=true,facing=down":  { "model": "vsfluidlink:block/item_hose_connector_linked_none", "x": 90 },
-    "activity=send,facing=north": { "model": "vsfluidlink:block/item_hose_connector_linked" },
-    "activity=send,facing=south": { "model": "vsfluidlink:block/item_hose_connector_linked", "y": 180 },
-    "activity=send,facing=west":  { "model": "vsfluidlink:block/item_hose_connector_linked", "y": 270 },
-    "activity=send,facing=east":  { "model": "vsfluidlink:block/item_hose_connector_linked", "y": 90 },
-    "activity=send,facing=up":    { "model": "vsfluidlink:block/item_hose_connector_linked", "x": -90 },
-    "activity=send,facing=down":  { "model": "vsfluidlink:block/item_hose_connector_linked", "x": 90 },
-    "activity=receive,facing=north": { "model": "vsfluidlink:block/item_hose_connector_linked_inv" },
-    "activity=receive,facing=south": { "model": "vsfluidlink:block/item_hose_connector_linked_inv", "y": 180 },
-    "activity=receive,facing=west":  { "model": "vsfluidlink:block/item_hose_connector_linked_inv", "y": 270 },
-    "activity=receive,facing=east":  { "model": "vsfluidlink:block/item_hose_connector_linked_inv", "y": 90 },
-    "activity=receive,facing=up":    { "model": "vsfluidlink:block/item_hose_connector_linked_inv", "x": -90 },
-    "activity=receive,facing=down":  { "model": "vsfluidlink:block/item_hose_connector_linked_inv", "x": 90 }
+    "activity=none,linked=false,facing=north,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none"
+    },
+    "activity=none,linked=false,facing=north,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_north_1"
+    },
+    "activity=none,linked=false,facing=north,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_north_2"
+    },
+    "activity=none,linked=false,facing=north,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_north_3"
+    },
+    "activity=none,linked=false,facing=south,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none",
+      "y": 180
+    },
+    "activity=none,linked=false,facing=south,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_south_1"
+    },
+    "activity=none,linked=false,facing=south,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_south_2"
+    },
+    "activity=none,linked=false,facing=south,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_south_3"
+    },
+    "activity=none,linked=false,facing=west,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none",
+      "y": 270
+    },
+    "activity=none,linked=false,facing=west,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_west_1"
+    },
+    "activity=none,linked=false,facing=west,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_west_2"
+    },
+    "activity=none,linked=false,facing=west,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_west_3"
+    },
+    "activity=none,linked=false,facing=east,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none",
+      "y": 90
+    },
+    "activity=none,linked=false,facing=east,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_east_1"
+    },
+    "activity=none,linked=false,facing=east,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_east_2"
+    },
+    "activity=none,linked=false,facing=east,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_east_3"
+    },
+    "activity=none,linked=false,facing=up,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none",
+      "x": -90
+    },
+    "activity=none,linked=false,facing=up,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_up_1"
+    },
+    "activity=none,linked=false,facing=up,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_up_2"
+    },
+    "activity=none,linked=false,facing=up,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_up_3"
+    },
+    "activity=none,linked=false,facing=down,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_none",
+      "x": 90
+    },
+    "activity=none,linked=false,facing=down,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_down_1"
+    },
+    "activity=none,linked=false,facing=down,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_down_2"
+    },
+    "activity=none,linked=false,facing=down,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_false_facing_down_3"
+    },
+    "activity=none,linked=true,facing=north,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none"
+    },
+    "activity=none,linked=true,facing=north,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_north_1"
+    },
+    "activity=none,linked=true,facing=north,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_north_2"
+    },
+    "activity=none,linked=true,facing=north,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_north_3"
+    },
+    "activity=none,linked=true,facing=south,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none",
+      "y": 180
+    },
+    "activity=none,linked=true,facing=south,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_south_1"
+    },
+    "activity=none,linked=true,facing=south,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_south_2"
+    },
+    "activity=none,linked=true,facing=south,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_south_3"
+    },
+    "activity=none,linked=true,facing=west,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none",
+      "y": 270
+    },
+    "activity=none,linked=true,facing=west,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_west_1"
+    },
+    "activity=none,linked=true,facing=west,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_west_2"
+    },
+    "activity=none,linked=true,facing=west,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_west_3"
+    },
+    "activity=none,linked=true,facing=east,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none",
+      "y": 90
+    },
+    "activity=none,linked=true,facing=east,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_east_1"
+    },
+    "activity=none,linked=true,facing=east,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_east_2"
+    },
+    "activity=none,linked=true,facing=east,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_east_3"
+    },
+    "activity=none,linked=true,facing=up,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none",
+      "x": -90
+    },
+    "activity=none,linked=true,facing=up,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_up_1"
+    },
+    "activity=none,linked=true,facing=up,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_up_2"
+    },
+    "activity=none,linked=true,facing=up,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_up_3"
+    },
+    "activity=none,linked=true,facing=down,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_none",
+      "x": 90
+    },
+    "activity=none,linked=true,facing=down,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_down_1"
+    },
+    "activity=none,linked=true,facing=down,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_down_2"
+    },
+    "activity=none,linked=true,facing=down,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_none_linked_true_facing_down_3"
+    },
+    "activity=send,facing=north,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked"
+    },
+    "activity=send,facing=north,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_north_1"
+    },
+    "activity=send,facing=north,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_north_2"
+    },
+    "activity=send,facing=north,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_north_3"
+    },
+    "activity=send,facing=south,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked",
+      "y": 180
+    },
+    "activity=send,facing=south,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_south_1"
+    },
+    "activity=send,facing=south,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_south_2"
+    },
+    "activity=send,facing=south,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_south_3"
+    },
+    "activity=send,facing=west,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked",
+      "y": 270
+    },
+    "activity=send,facing=west,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_west_1"
+    },
+    "activity=send,facing=west,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_west_2"
+    },
+    "activity=send,facing=west,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_west_3"
+    },
+    "activity=send,facing=east,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked",
+      "y": 90
+    },
+    "activity=send,facing=east,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_east_1"
+    },
+    "activity=send,facing=east,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_east_2"
+    },
+    "activity=send,facing=east,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_east_3"
+    },
+    "activity=send,facing=up,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked",
+      "x": -90
+    },
+    "activity=send,facing=up,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_up_1"
+    },
+    "activity=send,facing=up,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_up_2"
+    },
+    "activity=send,facing=up,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_up_3"
+    },
+    "activity=send,facing=down,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked",
+      "x": 90
+    },
+    "activity=send,facing=down,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_down_1"
+    },
+    "activity=send,facing=down,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_down_2"
+    },
+    "activity=send,facing=down,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_send_facing_down_3"
+    },
+    "activity=receive,facing=north,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv"
+    },
+    "activity=receive,facing=north,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_north_1"
+    },
+    "activity=receive,facing=north,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_north_2"
+    },
+    "activity=receive,facing=north,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_north_3"
+    },
+    "activity=receive,facing=south,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv",
+      "y": 180
+    },
+    "activity=receive,facing=south,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_south_1"
+    },
+    "activity=receive,facing=south,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_south_2"
+    },
+    "activity=receive,facing=south,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_south_3"
+    },
+    "activity=receive,facing=west,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv",
+      "y": 270
+    },
+    "activity=receive,facing=west,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_west_1"
+    },
+    "activity=receive,facing=west,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_west_2"
+    },
+    "activity=receive,facing=west,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_west_3"
+    },
+    "activity=receive,facing=east,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv",
+      "y": 90
+    },
+    "activity=receive,facing=east,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_east_1"
+    },
+    "activity=receive,facing=east,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_east_2"
+    },
+    "activity=receive,facing=east,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_east_3"
+    },
+    "activity=receive,facing=up,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv",
+      "x": -90
+    },
+    "activity=receive,facing=up,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_up_1"
+    },
+    "activity=receive,facing=up,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_up_2"
+    },
+    "activity=receive,facing=up,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_up_3"
+    },
+    "activity=receive,facing=down,roll=0": {
+      "model": "vsfluidlink:block/item_hose_connector_linked_inv",
+      "x": 90
+    },
+    "activity=receive,facing=down,roll=1": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_down_1"
+    },
+    "activity=receive,facing=down,roll=2": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_down_2"
+    },
+    "activity=receive,facing=down,roll=3": {
+      "model": "vsfluidlink:block/roll/item_hose_connector_activity_receive_facing_down_3"
+    }
   }
 }

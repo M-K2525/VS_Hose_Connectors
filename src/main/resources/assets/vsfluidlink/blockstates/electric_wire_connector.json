@@ -1,20 +1,316 @@
 {
   "variants": {
-    "facing=north,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 90 },
-    "facing=east,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 180 },
-    "facing=south,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 270 },
-    "facing=west,linked=false,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector", "y": 0 },
-    "facing=north,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 90 },
-    "facing=east,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180 , "y": 180 },
-    "facing=south,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 270 },
-    "facing=west,linked=false,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector", "x": 180, "y": 0 },
-    "facing=north,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 90 },
-    "facing=east,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 180 },
-    "facing=south,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 270 },
-    "facing=west,linked=true,upside_down=false": { "model": "vsfluidlink:block/electric_wire_connector_linked", "y": 0 },
-    "facing=north,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 90 },
-    "facing=east,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 180 },
-    "facing=south,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 270 },
-    "facing=west,linked=true,upside_down=true": { "model": "vsfluidlink:block/electric_wire_connector_linked", "x": 180, "y": 0 }
+    "facing=north,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "y": 90
+    },
+    "facing=north,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_false_1"
+    },
+    "facing=north,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_false_2"
+    },
+    "facing=north,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_false_3"
+    },
+    "facing=east,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "y": 180
+    },
+    "facing=east,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_false_1"
+    },
+    "facing=east,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_false_2"
+    },
+    "facing=east,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_false_3"
+    },
+    "facing=south,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "y": 270
+    },
+    "facing=south,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_false_1"
+    },
+    "facing=south,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_false_2"
+    },
+    "facing=south,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_false_3"
+    },
+    "facing=west,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "y": 0
+    },
+    "facing=west,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_false_1"
+    },
+    "facing=west,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_false_2"
+    },
+    "facing=west,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_false_3"
+    },
+    "facing=north,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "x": 180,
+      "y": 90
+    },
+    "facing=north,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_true_1"
+    },
+    "facing=north,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_true_2"
+    },
+    "facing=north,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_false_upside_down_true_3"
+    },
+    "facing=east,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "x": 180,
+      "y": 180
+    },
+    "facing=east,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_true_1"
+    },
+    "facing=east,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_true_2"
+    },
+    "facing=east,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_false_upside_down_true_3"
+    },
+    "facing=south,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "x": 180,
+      "y": 270
+    },
+    "facing=south,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_true_1"
+    },
+    "facing=south,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_true_2"
+    },
+    "facing=south,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_false_upside_down_true_3"
+    },
+    "facing=west,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector",
+      "x": 180,
+      "y": 0
+    },
+    "facing=west,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_true_1"
+    },
+    "facing=west,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_true_2"
+    },
+    "facing=west,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_false_upside_down_true_3"
+    },
+    "facing=north,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "y": 90
+    },
+    "facing=north,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_false_1"
+    },
+    "facing=north,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_false_2"
+    },
+    "facing=north,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_false_3"
+    },
+    "facing=east,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "y": 180
+    },
+    "facing=east,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_false_1"
+    },
+    "facing=east,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_false_2"
+    },
+    "facing=east,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_false_3"
+    },
+    "facing=south,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "y": 270
+    },
+    "facing=south,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_false_1"
+    },
+    "facing=south,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_false_2"
+    },
+    "facing=south,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_false_3"
+    },
+    "facing=west,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "y": 0
+    },
+    "facing=west,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_false_1"
+    },
+    "facing=west,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_false_2"
+    },
+    "facing=west,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_false_3"
+    },
+    "facing=north,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "x": 180,
+      "y": 90
+    },
+    "facing=north,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_true_1"
+    },
+    "facing=north,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_true_2"
+    },
+    "facing=north,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_north_linked_true_upside_down_true_3"
+    },
+    "facing=east,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "x": 180,
+      "y": 180
+    },
+    "facing=east,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_true_1"
+    },
+    "facing=east,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_true_2"
+    },
+    "facing=east,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_east_linked_true_upside_down_true_3"
+    },
+    "facing=south,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "x": 180,
+      "y": 270
+    },
+    "facing=south,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_true_1"
+    },
+    "facing=south,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_true_2"
+    },
+    "facing=south,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_south_linked_true_upside_down_true_3"
+    },
+    "facing=west,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/electric_wire_connector_linked",
+      "x": 180,
+      "y": 0
+    },
+    "facing=west,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_true_1"
+    },
+    "facing=west,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_true_2"
+    },
+    "facing=west,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_west_linked_true_upside_down_true_3"
+    },
+    "facing=up,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_up_linked_false_upside_down_false"
+    },
+    "facing=up,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_false_1"
+    },
+    "facing=up,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_false_2"
+    },
+    "facing=up,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_false_3"
+    },
+    "facing=down,linked=false,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_down_linked_false_upside_down_false"
+    },
+    "facing=down,linked=false,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_false_1"
+    },
+    "facing=down,linked=false,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_false_2"
+    },
+    "facing=down,linked=false,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_false_3"
+    },
+    "facing=up,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_up_linked_false_upside_down_true"
+    },
+    "facing=up,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_true_1"
+    },
+    "facing=up,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_true_2"
+    },
+    "facing=up,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_false_upside_down_true_3"
+    },
+    "facing=down,linked=false,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_down_linked_false_upside_down_true"
+    },
+    "facing=down,linked=false,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_true_1"
+    },
+    "facing=down,linked=false,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_true_2"
+    },
+    "facing=down,linked=false,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_false_upside_down_true_3"
+    },
+    "facing=up,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_up_linked_true_upside_down_false"
+    },
+    "facing=up,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_false_1"
+    },
+    "facing=up,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_false_2"
+    },
+    "facing=up,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_false_3"
+    },
+    "facing=down,linked=true,upside_down=false,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_down_linked_true_upside_down_false"
+    },
+    "facing=down,linked=true,upside_down=false,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_false_1"
+    },
+    "facing=down,linked=true,upside_down=false,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_false_2"
+    },
+    "facing=down,linked=true,upside_down=false,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_false_3"
+    },
+    "facing=up,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_up_linked_true_upside_down_true"
+    },
+    "facing=up,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_true_1"
+    },
+    "facing=up,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_true_2"
+    },
+    "facing=up,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_up_linked_true_upside_down_true_3"
+    },
+    "facing=down,linked=true,upside_down=true,roll=0": {
+      "model": "vsfluidlink:block/roll_base/electric_wire_connector_facing_down_linked_true_upside_down_true"
+    },
+    "facing=down,linked=true,upside_down=true,roll=1": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_true_1"
+    },
+    "facing=down,linked=true,upside_down=true,roll=2": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_true_2"
+    },
+    "facing=down,linked=true,upside_down=true,roll=3": {
+      "model": "vsfluidlink:block/roll/electric_wire_connector_facing_down_linked_true_upside_down_true_3"
+    }
   }
 }

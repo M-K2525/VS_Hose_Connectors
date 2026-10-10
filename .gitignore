@@ -27,3 +27,5 @@ forge*changelog.txt
 output/
 pictures/
 reference/
+.worktrees/
+__pycache__/

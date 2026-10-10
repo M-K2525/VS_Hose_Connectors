@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.util.LinkSelection;
 import com.mk2525.vsfluidlink.util.LinkTarget;
@@ -43,7 +45,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
 
     public static final MapCodec<HoseConnectorBlock> CODEC = simpleCodec(HoseConnectorBlock::new);
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
-    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.FACING;
     public static final BooleanProperty UPSIDE_DOWN = BooleanProperty.create("upside_down");
     private static final String LINK_SELECTION_CHANNEL = "hose_connector";
 
@@ -62,7 +64,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LINKED, HORIZONTAL_FACING, UPSIDE_DOWN);
+        builder.add(LINKED, HORIZONTAL_FACING, UPSIDE_DOWN, ConnectorOrientation.ROLL);
     }
 
     @Nullable
@@ -75,7 +77,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     }
 
     public static Direction getPipeSide(BlockState state) {
-        return state.getValue(UPSIDE_DOWN) ? Direction.UP : Direction.DOWN;
+        return ConnectorOrientation.modelUp(state).getOpposite();
     }
 
     @Override
@@ -123,13 +125,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
             }
 
             if (player.isShiftKeyDown()) {
-                if (tag.contains("LinkPos")) {
-                    tag.remove("LinkPos");
-                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
-                    player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
-                }
-                return InteractionResult.SUCCESS;
+                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
             }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
@@ -270,20 +266,6 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
 
     @Override
     public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
-        Player player = context.getPlayer();
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-
-        if (player != null && !level.isClientSide) {
-            if (!player.isCreative()) {
-                ItemStack itemStack = new ItemStack(this);
-                if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
-                }
-            }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-            level.levelEvent(2001, pos, Block.getId(state));
-        }
-        return InteractionResult.SUCCESS;
+        return ConnectorOrientation.onSneakWrenched(state, context);
     }
 }

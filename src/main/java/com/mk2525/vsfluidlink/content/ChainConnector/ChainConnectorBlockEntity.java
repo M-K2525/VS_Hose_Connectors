@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ChainConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
@@ -226,20 +228,11 @@ public class ChainConnectorBlockEntity extends DirectionalShaftHalvesBlockEntity
     }
 
     private Direction getModelUp(BlockState state) {
-        Direction facing = getFacing(state);
-        return switch (facing) {
-            case UP -> Direction.NORTH;
-            case DOWN -> Direction.SOUTH;
-            default -> Direction.UP;
-        };
+        return ConnectorOrientation.modelUp(state);
     }
 
     private Direction getModelSide(BlockState state) {
-        Direction facing = getFacing(state);
-        return switch (facing.getAxis()) {
-            case X -> Direction.SOUTH;
-            case Z, Y -> Direction.EAST;
-        };
+        return ConnectorOrientation.modelSide(state);
     }
 
     private Direction getFacing(BlockState state) {

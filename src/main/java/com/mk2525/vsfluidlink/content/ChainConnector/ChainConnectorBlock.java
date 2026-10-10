@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ChainConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.LinkSelection;
@@ -42,13 +44,13 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
     public ChainConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
-        registerDefaultState(defaultBlockState().setValue(LINKED, false));
+        registerDefaultState(defaultBlockState().setValue(LINKED, false).setValue(ConnectorOrientation.ROLL, 0));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(LINKED);
+        builder.add(LINKED, ConnectorOrientation.ROLL);
     }
 
     @Override
@@ -59,16 +61,14 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
     @Override
     public Axis getRotationAxis(BlockState state) {
-        Direction facing = state.getValue(FACING);
-        if (facing.getAxis().isVertical()) {
-            return Axis.X;
-        }
-        // North/South (Z霆ｸ) 縺ｮ縺ｨ縺阪・ East/West (X霆ｸ) 縺ｫ謗･邯・
-        if (facing.getAxis() == Axis.Z) {
-            return Axis.X;
-        }
-        // East/West (X霆ｸ) 縺ｮ縺ｨ縺阪・ North/South (Z霆ｸ) 縺ｫ謗･邯・
-        return Axis.Z;
+        return ConnectorOrientation.shaftAxis(state);
+    }
+
+    @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        return super.areStatesKineticallyEquivalent(oldState, newState)
+                && oldState.getValue(FACING) == newState.getValue(FACING)
+                && oldState.getValue(ConnectorOrientation.ROLL).equals(newState.getValue(ConnectorOrientation.ROLL));
     }
 
     @Override
@@ -111,13 +111,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
             }
 
             if (player.isShiftKeyDown()) {
-                if (tag.contains("LinkPos")) {
-                    tag.remove("LinkPos");
-                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
-                    player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
-                }
-                return InteractionResult.SUCCESS;
+                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
             }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
@@ -252,28 +246,6 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
     @Override
     public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
-        Player player = context.getPlayer();
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-
-        if (player != null && !level.isClientSide && LinkSelection.get(player, LINK_SELECTION_CHANNEL) != null) {
-            LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
-            player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
-            return InteractionResult.SUCCESS;
-        }
-
-        if (player != null && !level.isClientSide) {
-            if (!player.isCreative()) {
-                ItemStack itemStack = new ItemStack(this);
-                if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
-                }
-            }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-            level.levelEvent(2001, pos, Block.getId(state));
-        }
-
-        return InteractionResult.SUCCESS;
+        return ConnectorOrientation.onSneakWrenched(state, context);
     }
 }

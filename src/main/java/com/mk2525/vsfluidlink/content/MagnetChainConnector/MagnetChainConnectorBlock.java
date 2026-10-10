@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.MagnetChainConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
@@ -28,13 +30,13 @@ public class MagnetChainConnectorBlock extends DirectionalKineticBlock implement
 
     public MagnetChainConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
-        registerDefaultState(defaultBlockState().setValue(LINKED, false));
+        registerDefaultState(defaultBlockState().setValue(LINKED, false).setValue(ConnectorOrientation.ROLL, 0));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(LINKED);
+        builder.add(LINKED, ConnectorOrientation.ROLL);
     }
 
     @Override
@@ -45,14 +47,14 @@ public class MagnetChainConnectorBlock extends DirectionalKineticBlock implement
 
     @Override
     public Axis getRotationAxis(BlockState state) {
-        Direction facing = state.getValue(FACING);
-        if (facing.getAxis().isVertical()) {
-            return Axis.X;
-        }
-        if (facing.getAxis() == Axis.Z) {
-            return Axis.X;
-        }
-        return Axis.Z;
+        return ConnectorOrientation.shaftAxis(state);
+    }
+
+    @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        return super.areStatesKineticallyEquivalent(oldState, newState)
+                && oldState.getValue(FACING) == newState.getValue(FACING)
+                && oldState.getValue(ConnectorOrientation.ROLL).equals(newState.getValue(ConnectorOrientation.ROLL));
     }
 
     @Override
@@ -98,6 +100,11 @@ public class MagnetChainConnectorBlock extends DirectionalKineticBlock implement
     @Override
     public RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    @Override
+    public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        return ConnectorOrientation.onSneakWrenched(state, context);
     }
 
     @Override
