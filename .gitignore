@@ -29,3 +29,7 @@ pictures/
 reference/
 .worktrees/
 __pycache__/
+/.qwen/
+/docs/
+/libs/
+/tools/
