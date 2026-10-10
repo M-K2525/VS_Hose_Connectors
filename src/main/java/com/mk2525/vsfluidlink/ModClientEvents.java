@@ -18,6 +18,9 @@ import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.ModList;
+import net.minecraftforge.client.ConfigScreenHandler;
+import com.mk2525.vsfluidlink.client.ServerConfigScreen;
 import org.slf4j.Logger;
 
 @Mod.EventBusSubscriber(modid = VsFluidLinkMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -26,6 +29,9 @@ public class ModClientEvents {
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {
+        ModList.get().getModContainerById(VsFluidLinkMod.MOD_ID).orElseThrow()
+                .registerExtensionPoint(ConfigScreenHandler.ConfigScreenFactory.class,
+                        () -> new ConfigScreenHandler.ConfigScreenFactory((minecraft, parent) -> new ServerConfigScreen(parent)));
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.HOSE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.MAGNET_HOSE_CONNECTOR.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(ModBlocks.ITEM_HOSE_CONNECTOR.get(), RenderType.cutout());

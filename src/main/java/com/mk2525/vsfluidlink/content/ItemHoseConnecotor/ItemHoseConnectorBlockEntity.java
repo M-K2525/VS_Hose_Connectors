@@ -4,6 +4,7 @@ import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
+import com.mk2525.vsfluidlink.util.ConnectorItemBuffer;
 import com.mojang.logging.LogUtils;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -12,7 +13,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
     private static final Logger LOGGER = LogUtils.getLogger();
     
-    protected final ItemStackHandler inventory = new ItemStackHandler(1) {
+    protected final ConnectorItemBuffer inventory = new ConnectorItemBuffer() {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -54,6 +54,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
 
     @Override
     public void onLoad() {
+        inventory.applyConfiguredSize();
         super.onLoad();
         VSLinkUtil.registerLinkBlockEntity(this);
     }
@@ -184,11 +185,7 @@ public class ItemHoseConnectorBlockEntity extends KineticBlockEntity {
         if (targetPos != null && getBlockState().getValue(ItemHoseConnectorBlock.ACTIVITY) == LinkActivity.SEND) {
             ItemHoseConnectorBlockEntity targetLink = VSLinkUtil.findReciprocalLink(level, worldPosition, targetPos, ItemHoseConnectorBlockEntity.class, ItemHoseConnectorBlockEntity::getTargetPos);
             if (targetLink != null) {
-                ItemStack myStack = inventory.getStackInSlot(0);
-                if (!myStack.isEmpty()) {
-                    ItemStack remaining = targetLink.inventory.insertItem(0, myStack, false);
-                    inventory.setStackInSlot(0, remaining);
-                }
+                inventory.transferTo(targetLink.inventory);
             }
         }
     }

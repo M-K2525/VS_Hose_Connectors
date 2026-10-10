@@ -31,3 +31,4 @@ reference/
 __pycache__/
 /.qwen/
 /libs/
+/docs/

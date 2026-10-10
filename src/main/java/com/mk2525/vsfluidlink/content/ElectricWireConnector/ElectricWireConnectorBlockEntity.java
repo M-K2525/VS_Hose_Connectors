@@ -37,7 +37,18 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final int NEIGHBOR_TRANSFER_RATE = 10000;
     
-    protected final EnergyStorage energyStorage = new EnergyStorage(10000, 10000, 10000) {
+    private static class MutableEnergyStorage extends EnergyStorage {
+        private MutableEnergyStorage() {
+            super(VsFluidLinkConfig.energyCapacity(), 10000, 10000);
+        }
+
+        public void applyCapacity() {
+            capacity = VsFluidLinkConfig.energyCapacity();
+            energy = Math.max(0, Math.min(capacity, energy));
+        }
+    }
+
+    protected final MutableEnergyStorage energyStorage = new MutableEnergyStorage() {
         @Override
         public int receiveEnergy(int maxReceive, boolean simulate) {
             int received = super.receiveEnergy(maxReceive, simulate);
@@ -75,6 +86,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     @Override
     public void onLoad() {
         super.onLoad();
+        energyStorage.applyCapacity();
         VSLinkUtil.registerLinkBlockEntity(this);
     }
 
@@ -244,6 +256,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         if (tag.contains("Energy")) {
             energyStorage.deserializeNBT(tag.get("Energy"));
         }
+        energyStorage.applyCapacity();
         
         if (tag.contains("TargetPos")) {
             targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));

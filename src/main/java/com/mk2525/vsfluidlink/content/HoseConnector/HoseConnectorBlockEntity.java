@@ -36,7 +36,7 @@ import java.util.List;
 
 public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveringInformation {
     private static final Logger LOGGER = LogUtils.getLogger();
-    protected final FluidTank tank = new FluidTank(1000) {
+    protected final FluidTank tank = new FluidTank(VsFluidLinkConfig.fluidCapacity()) {
         @Override
         protected void onContentsChanged() {
             setChanged();
@@ -62,6 +62,7 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
     @Override
     public void onLoad() {
         super.onLoad();
+        applyBufferCapacity();
         VSLinkUtil.registerLinkBlockEntity(this);
     }
 
@@ -231,6 +232,7 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
     public void load(CompoundTag tag) {
         super.load(tag);
         tank.readFromNBT(tag.getCompound("Tank"));
+        applyBufferCapacity();
         if (tag.contains("TargetPos")) {
             targetPos = NbtUtils.readBlockPos(tag.getCompound("TargetPos"));
         } else {
@@ -240,6 +242,15 @@ public class HoseConnectorBlockEntity extends BlockEntity implements IHaveHoveri
     
     public FluidTank getTank() {
         return tank;
+    }
+
+    private void applyBufferCapacity() {
+        tank.setCapacity(VsFluidLinkConfig.fluidCapacity());
+        if (tank.getFluidAmount() > tank.getCapacity()) {
+            tank.setFluid(tank.getFluid().copy());
+            tank.getFluid().setAmount(tank.getCapacity());
+            setChanged();
+        }
     }
 
     private static void setTankContents(HoseConnectorBlockEntity owner, FluidTank tank, FluidStack fluid, int amount) {
