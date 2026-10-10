@@ -44,6 +44,10 @@ neoForge {
 }
 
 repositories {
+    maven {
+        url = 'https://maven.squiddev.cc'
+        content { includeGroup 'cc.tweaked' }
+    }
     mavenCentral()
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://maven.ithundxr.dev/snapshots" } // Registrate
@@ -63,7 +67,13 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'cc.tweaked:cc-tweaked-1.21.1-forge-api:1.120.2'
+    testImplementation 'cc.tweaked:cc-tweaked-1.21.1-forge-api:1.120.2'
+    if (providers.gradleProperty('withComputerCraft').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly 'cc.tweaked:cc-tweaked-1.21.1-forge:1.120.2'
+    }
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.2'
     // Create for NeoForge 1.21.1
     // 以前の差分で libs 内の jar を参照していたため、それに合わせます
@@ -106,4 +116,5 @@ jar {
 
 test {
     useJUnitPlatform()
+    systemProperty 'withComputerCraft', providers.gradleProperty('withComputerCraft').getOrElse('false')
 }

@@ -4,6 +4,8 @@ import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
+import com.mk2525.vsfluidlink.compat.computercraft.ComputerCraftCompat;
+import com.mk2525.vsfluidlink.compat.computercraft.WiredConnection;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -73,6 +75,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     private BlockPos targetPos;
     private Long targetSpaceId;
     private long lastTransferTick = -1;
+    private @Nullable WiredConnection wiredConnection;
 
     public ElectricWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -108,6 +111,11 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
         if (!level.isClientSide) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            WiredConnection connection = wiredConnection;
+            if (connection != null && level.getServer() != null) {
+                if (level.getServer().isSameThread()) connection.linkChanged();
+                else level.getServer().execute(connection::linkChanged);
+            }
         }
     }
 
@@ -144,6 +152,42 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     public void onLoad() {
         super.onLoad();
         energyStorage.applyCapacity();
+        if (level != null && !level.isClientSide) {
+            tickWiredConnection();
+            level.invalidateCapabilities(getBlockPos());
+        }
+    }
+
+    public @Nullable WiredConnection getWiredConnection() {
+        if (level == null || level.isClientSide || isRemoved() || level.getServer() == null
+                || !level.getServer().isSameThread()) return null;
+        if (wiredConnection == null) wiredConnection = ComputerCraftCompat.create(this);
+        return wiredConnection;
+    }
+
+    public void tickWiredConnection() {
+        WiredConnection connection = getWiredConnection();
+        if (connection != null) connection.tick();
+    }
+
+    private void removeWiredConnection() {
+        WiredConnection connection = wiredConnection;
+        wiredConnection = null;
+        if (connection == null || level == null || level.isClientSide || level.getServer() == null) return;
+        if (level.getServer().isSameThread()) connection.remove();
+        else level.getServer().execute(connection::remove);
+    }
+
+    @Override
+    public void setRemoved() {
+        removeWiredConnection();
+        super.setRemoved();
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        removeWiredConnection();
+        super.onChunkUnloaded();
     }
 
     @Override
@@ -169,6 +213,8 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricWireConnectorBlockEntity blockEntity) {
         if (level.isClientSide) return;
+
+        blockEntity.tickWiredConnection();
 
         transferWithAdjacent(level, pos, blockEntity);
 

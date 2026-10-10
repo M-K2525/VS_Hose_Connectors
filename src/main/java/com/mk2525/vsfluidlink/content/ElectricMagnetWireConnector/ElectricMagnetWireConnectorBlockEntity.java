@@ -50,6 +50,8 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricMagnetWireConnectorBlockEntity blockEntity) {
         if (level.isClientSide) return;
 
+        blockEntity.tickWiredConnection();
+
         // --- Connection Check (every 20 ticks) ---
         if (blockEntity.checkCooldown-- <= 0) {
             blockEntity.checkCooldown = 20;
@@ -178,10 +180,11 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
 
     private static void disconnect(Level level, BlockPos pos, ElectricMagnetWireConnectorBlockEntity blockEntity) {
         BlockPos oldTarget = blockEntity.getTargetPos();
+        Long oldTargetSpaceId = blockEntity.getTargetSpaceId();
         blockEntity.setTargetPos(null);
 
         if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, blockEntity.getTargetSpaceId(), ElectricMagnetWireConnectorBlockEntity.class);
+            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, oldTargetSpaceId, ElectricMagnetWireConnectorBlockEntity.class);
             if (targetBe instanceof ElectricMagnetWireConnectorBlockEntity targetLinkBe) {
                 targetLinkBe.setTarget(null, null);
             }

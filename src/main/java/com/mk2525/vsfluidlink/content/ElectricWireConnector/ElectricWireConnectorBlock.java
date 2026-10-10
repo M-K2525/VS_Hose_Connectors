@@ -127,11 +127,12 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof ElectricWireConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
                 BlockPos targetPos = linkBe.getTargetPos();
+                Long targetSpaceId = linkBe.getTargetSpaceId();
 
                 linkBe.setTargetPos(null);
 
                 if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), ElectricWireConnectorBlockEntity.class);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ElectricWireConnectorBlockEntity.class);
                     if (targetBe instanceof ElectricWireConnectorBlockEntity targetLinkBe) {
                         targetLinkBe.setTarget(null, null);
                     }

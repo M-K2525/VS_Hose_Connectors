@@ -131,11 +131,12 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof HoseConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
                 BlockPos targetPos = linkBe.getTargetPos();
+                Long targetSpaceId = linkBe.getTargetSpaceId();
 
                 linkBe.setTargetPos(null);
 
                 if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), HoseConnectorBlockEntity.class);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, HoseConnectorBlockEntity.class);
                     if (targetBe instanceof HoseConnectorBlockEntity targetLinkBe) {
                         targetLinkBe.setTarget(null, null);
                     }

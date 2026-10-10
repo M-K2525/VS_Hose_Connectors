@@ -181,10 +181,11 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
 
     private static void disconnect(Level level, BlockPos pos, MagnetHoseConnectorBlockEntity blockEntity) {
         BlockPos oldTarget = blockEntity.getTargetPos();
+        Long oldTargetSpaceId = blockEntity.getTargetSpaceId();
         blockEntity.setTargetPos(null);
 
         if (oldTarget != null && level.isLoaded(oldTarget)) {
-            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, blockEntity.getTargetSpaceId(), MagnetHoseConnectorBlockEntity.class);
+            BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, oldTarget, oldTargetSpaceId, MagnetHoseConnectorBlockEntity.class);
             if (targetBe instanceof MagnetHoseConnectorBlockEntity targetLinkBe) {
                 targetLinkBe.setTarget(null, null);
             }

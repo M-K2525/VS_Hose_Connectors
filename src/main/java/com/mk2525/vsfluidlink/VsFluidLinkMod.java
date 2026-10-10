@@ -5,6 +5,7 @@ import com.mk2525.vsfluidlink.content.HoseConnector.HoseConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.registry.ModBlocks;
 import com.mk2525.vsfluidlink.registry.ModCreativeModeTabs;
+import com.mk2525.vsfluidlink.compat.computercraft.ComputerCraftCompat;
 import com.mojang.logging.LogUtils;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -39,6 +40,7 @@ public class VsFluidLinkMod {
     }
 
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
+        ComputerCraftCompat.registerCapabilities(event);
         event.registerBlockEntity(
                 Capabilities.FluidHandler.BLOCK,
                 ModBlockEntities.HOSE_CONNECTOR.get(),

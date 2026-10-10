@@ -121,11 +121,12 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof ItemHoseConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
                 BlockPos targetPos = linkBe.getTargetPos();
+                Long targetSpaceId = linkBe.getTargetSpaceId();
 
                 linkBe.setTargetPos(null);
 
                 if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), ItemHoseConnectorBlockEntity.class);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ItemHoseConnectorBlockEntity.class);
                     if (targetBe instanceof ItemHoseConnectorBlockEntity targetLinkBe) {
                         targetLinkBe.setTarget(null, null);
                     }

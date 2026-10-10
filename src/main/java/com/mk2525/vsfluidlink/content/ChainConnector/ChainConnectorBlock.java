@@ -117,11 +117,12 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof ChainConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
                 BlockPos targetPos = linkBe.getTargetPos();
+                Long targetSpaceId = linkBe.getTargetSpaceId();
 
                 linkBe.setTargetPos(null);
 
                 if (level.isLoaded(targetPos)) {
-                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, linkBe.getTargetSpaceId(), ChainConnectorBlockEntity.class);
+                    BlockEntity targetBe = VSLinkUtil.resolveBlockEntity(level, targetPos, targetSpaceId, ChainConnectorBlockEntity.class);
                     if (targetBe instanceof ChainConnectorBlockEntity targetLinkBe) {
                         targetLinkBe.setTarget(null, null);
                     }
