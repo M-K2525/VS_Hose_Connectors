@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnectorBlock;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
@@ -34,12 +36,12 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
         this.registerDefaultState(this.stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
                 .setValue(POWERED, false)
-                .setValue(LINKED, false));
+                .setValue(LINKED, false).setValue(ConnectorOrientation.ROLL, 0));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, POWERED, LINKED);
+        builder.add(FACING, POWERED, LINKED, ConnectorOrientation.ROLL);
     }
 
     @Nullable
@@ -89,28 +91,15 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
         return createTickerHelper(blockEntityType, ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), ElectricMagnetWireConnectorBlockEntity::tick);
     }
 
-    @Override
-    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
-    }
 
     @Override
     public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
-        Player player = context.getPlayer();
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        
-        if (player != null && !level.isClientSide) {
-            if (!player.isCreative()) {
-                ItemStack itemStack = new ItemStack(this);
-                if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
-                }
-            }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-            level.levelEvent(2001, pos, Block.getId(state));
-        }
-        return InteractionResult.SUCCESS;
+        return ConnectorOrientation.onSneakWrenched(state, context);
+    }
+
+    @Override
+    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        return InteractionResult.PASS;
     }
 
     @Override

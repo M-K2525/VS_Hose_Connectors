@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ItemHoseConnecotor;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.content.LinkActivity;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
@@ -40,13 +42,13 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
 
     public ItemHoseConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
-        registerDefaultState(defaultBlockState().setValue(LINKED, false).setValue(ACTIVITY, LinkActivity.NONE));
+        registerDefaultState(defaultBlockState().setValue(ConnectorOrientation.ROLL, 0).setValue(LINKED, false).setValue(ACTIVITY, LinkActivity.NONE));
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(LINKED, ACTIVITY);
+        builder.add(LINKED, ACTIVITY, ConnectorOrientation.ROLL);
     }
 
     @Override
@@ -57,16 +59,14 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
 
     @Override
     public Axis getRotationAxis(BlockState state) {
-        Direction facing = state.getValue(FACING);
-        if (facing.getAxis().isVertical()) {
-            return Axis.X;
-        }
-        // North/South (Z軸) のときは East/West (X軸) に接続
-        if (facing.getAxis() == Axis.Z) {
-            return Axis.X;
-        }
-        // East/West (X軸) のときは North/South (Z軸) に接続
-        return Axis.Z;
+        return ConnectorOrientation.shaftAxis(state);
+    }
+
+    @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        return super.areStatesKineticallyEquivalent(oldState, newState)
+                && oldState.getValue(FACING) == newState.getValue(FACING)
+                && oldState.getValue(ConnectorOrientation.ROLL).equals(newState.getValue(ConnectorOrientation.ROLL));
     }
 
     @Override
@@ -98,12 +98,7 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
             CompoundTag tag = heldItem.getOrCreateTag();
 
             if (player.isShiftKeyDown()) {
-                if (tag.contains("LinkPos")) {
-                    tag.remove("LinkPos");
-                    player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
-                }
-                return InteractionResult.SUCCESS;
+                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
             }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
@@ -214,5 +209,9 @@ public class ItemHoseConnectorBlock extends DirectionalKineticBlock implements I
     @Override
     public SpeedLevel getMinimumRequiredSpeedLevel() {
         return SpeedLevel.MEDIUM;
+    }
+    @Override
+    public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        return ConnectorOrientation.onSneakWrenched(state, context);
     }
 }

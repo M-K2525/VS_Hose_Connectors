@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ChainConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -173,13 +175,7 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
     }
 
     private Direction.Axis getRotationAxis(BlockState state) {
-        Direction facing = state.getBlock() instanceof ChainConnectorBlock
-                ? state.getValue(ChainConnectorBlock.FACING)
-                : state.getValue(com.mk2525.vsfluidlink.content.MagnetChainConnector.MagnetChainConnectorBlock.FACING);
-        if (facing.getAxis().isVertical() || facing.getAxis() == Direction.Axis.Z) {
-            return Direction.Axis.X;
-        }
-        return Direction.Axis.Z;
+        return ConnectorOrientation.shaftAxis(state);
     }
 
     private Vec3 getPreferredAnchorVector(BlockState state, Vec3 shaft) {
@@ -193,24 +189,11 @@ public class ChainConnectorRenderer extends KineticBlockEntityRenderer<ChainConn
     }
 
     private Direction getModelUp(BlockState state) {
-        Direction facing = state.getBlock() instanceof ChainConnectorBlock
-                ? state.getValue(ChainConnectorBlock.FACING)
-                : state.getValue(com.mk2525.vsfluidlink.content.MagnetChainConnector.MagnetChainConnectorBlock.FACING);
-        return switch (facing) {
-            case UP -> Direction.NORTH;
-            case DOWN -> Direction.SOUTH;
-            default -> Direction.UP;
-        };
+        return ConnectorOrientation.modelUp(state);
     }
 
     private Direction getModelSide(BlockState state) {
-        Direction facing = state.getBlock() instanceof ChainConnectorBlock
-                ? state.getValue(ChainConnectorBlock.FACING)
-                : state.getValue(com.mk2525.vsfluidlink.content.MagnetChainConnector.MagnetChainConnectorBlock.FACING);
-        return switch (facing.getAxis()) {
-            case X -> Direction.SOUTH;
-            case Z, Y -> Direction.EAST;
-        };
+        return ConnectorOrientation.modelSide(state);
     }
 
     private void renderChains(PoseStack ms, MultiBufferSource buffer, Vec3 localDiff, Vector3f[] startAnchors, Vector3f[] endAnchors, int light, float textureOffset) {

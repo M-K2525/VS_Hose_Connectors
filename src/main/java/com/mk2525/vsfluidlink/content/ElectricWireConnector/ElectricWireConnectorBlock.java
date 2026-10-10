@@ -1,5 +1,7 @@
 package com.mk2525.vsfluidlink.content.ElectricWireConnector;
 
+import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
@@ -38,7 +40,7 @@ import org.jetbrains.annotations.Nullable;
 public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWrenchable {
     
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
-    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.FACING;
     public static final BooleanProperty UPSIDE_DOWN = BooleanProperty.create("upside_down");
 
     public ElectricWireConnectorBlock(Properties properties) {
@@ -51,7 +53,7 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(LINKED, HORIZONTAL_FACING, UPSIDE_DOWN);
+        builder.add(LINKED, HORIZONTAL_FACING, UPSIDE_DOWN, ConnectorOrientation.ROLL);
     }
 
     @Nullable
@@ -97,12 +99,7 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
             CompoundTag tag = heldItem.getOrCreateTag();
             
             if (player.isShiftKeyDown()) {
-                if (tag.contains("LinkPos")) {
-                    tag.remove("LinkPos");
-                    player.displayClientMessage(Component.translatable("vsfluidlink.message.selection_cleared"), true);
-                    level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
-                }
-                return InteractionResult.SUCCESS;
+                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
             }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
@@ -214,20 +211,6 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
 
     @Override
     public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
-        Player player = context.getPlayer();
-        Level level = context.getLevel();
-        BlockPos pos = context.getClickedPos();
-        
-        if (player != null && !level.isClientSide) {
-            if (!player.isCreative()) {
-                ItemStack itemStack = new ItemStack(this);
-                if (!player.getInventory().add(itemStack)) {
-                    player.drop(itemStack, false);
-                }
-            }
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-            level.levelEvent(2001, pos, Block.getId(state));
-        }
-        return InteractionResult.SUCCESS;
+        return ConnectorOrientation.onSneakWrenched(state, context);
     }
 }

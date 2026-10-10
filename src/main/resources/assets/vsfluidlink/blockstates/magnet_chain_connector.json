@@ -1,16 +1,158 @@
 {
   "variants": {
-    "facing=north,linked=false": { "model": "vsfluidlink:block/magnet_chain_connector" },
-    "facing=south,linked=false": { "model": "vsfluidlink:block/magnet_chain_connector", "y": 180 },
-    "facing=west,linked=false":  { "model": "vsfluidlink:block/magnet_chain_connector", "y": 270 },
-    "facing=east,linked=false":  { "model": "vsfluidlink:block/magnet_chain_connector", "y": 90 },
-    "facing=up,linked=false":    { "model": "vsfluidlink:block/magnet_chain_connector", "x": -90 },
-    "facing=down,linked=false":  { "model": "vsfluidlink:block/magnet_chain_connector", "x": 90 },
-    "facing=north,linked=true": { "model": "vsfluidlink:block/magnet_chain_connector_linked" },
-    "facing=south,linked=true": { "model": "vsfluidlink:block/magnet_chain_connector_linked", "y": 180 },
-    "facing=west,linked=true":  { "model": "vsfluidlink:block/magnet_chain_connector_linked", "y": 270 },
-    "facing=east,linked=true":  { "model": "vsfluidlink:block/magnet_chain_connector_linked", "y": 90 },
-    "facing=up,linked=true":    { "model": "vsfluidlink:block/magnet_chain_connector_linked", "x": -90 },
-    "facing=down,linked=true":  { "model": "vsfluidlink:block/magnet_chain_connector_linked", "x": 90 }
+    "facing=north,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector"
+    },
+    "facing=north,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_false_1"
+    },
+    "facing=north,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_false_2"
+    },
+    "facing=north,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_false_3"
+    },
+    "facing=south,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector",
+      "y": 180
+    },
+    "facing=south,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_false_1"
+    },
+    "facing=south,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_false_2"
+    },
+    "facing=south,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_false_3"
+    },
+    "facing=west,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector",
+      "y": 270
+    },
+    "facing=west,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_false_1"
+    },
+    "facing=west,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_false_2"
+    },
+    "facing=west,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_false_3"
+    },
+    "facing=east,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector",
+      "y": 90
+    },
+    "facing=east,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_false_1"
+    },
+    "facing=east,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_false_2"
+    },
+    "facing=east,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_false_3"
+    },
+    "facing=up,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector",
+      "x": -90
+    },
+    "facing=up,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_false_1"
+    },
+    "facing=up,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_false_2"
+    },
+    "facing=up,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_false_3"
+    },
+    "facing=down,linked=false,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector",
+      "x": 90
+    },
+    "facing=down,linked=false,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_false_1"
+    },
+    "facing=down,linked=false,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_false_2"
+    },
+    "facing=down,linked=false,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_false_3"
+    },
+    "facing=north,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked"
+    },
+    "facing=north,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_true_1"
+    },
+    "facing=north,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_true_2"
+    },
+    "facing=north,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_north_linked_true_3"
+    },
+    "facing=south,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked",
+      "y": 180
+    },
+    "facing=south,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_true_1"
+    },
+    "facing=south,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_true_2"
+    },
+    "facing=south,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_south_linked_true_3"
+    },
+    "facing=west,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked",
+      "y": 270
+    },
+    "facing=west,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_true_1"
+    },
+    "facing=west,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_true_2"
+    },
+    "facing=west,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_west_linked_true_3"
+    },
+    "facing=east,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked",
+      "y": 90
+    },
+    "facing=east,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_true_1"
+    },
+    "facing=east,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_true_2"
+    },
+    "facing=east,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_east_linked_true_3"
+    },
+    "facing=up,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked",
+      "x": -90
+    },
+    "facing=up,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_true_1"
+    },
+    "facing=up,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_true_2"
+    },
+    "facing=up,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_up_linked_true_3"
+    },
+    "facing=down,linked=true,roll=0": {
+      "model": "vsfluidlink:block/magnet_chain_connector_linked",
+      "x": 90
+    },
+    "facing=down,linked=true,roll=1": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_true_1"
+    },
+    "facing=down,linked=true,roll=2": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_true_2"
+    },
+    "facing=down,linked=true,roll=3": {
+      "model": "vsfluidlink:block/roll/magnet_chain_connector_facing_down_linked_true_3"
+    }
   }
 }
