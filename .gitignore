@@ -29,3 +29,5 @@ pictures/
 reference/
 .worktrees/
 __pycache__/
+/.qwen/
+/libs/
