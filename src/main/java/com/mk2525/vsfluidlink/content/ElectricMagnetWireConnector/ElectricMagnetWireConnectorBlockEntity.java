@@ -62,6 +62,7 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricMagnetWireConnectorBlockEntity blockEntity) {
         if (level.isClientSide) return;
+        blockEntity.tickWiredConnection();
 
         // --- Connection Check (every 20 ticks) ---
         if (blockEntity.checkCooldown-- <= 0) {

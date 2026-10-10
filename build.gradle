@@ -52,6 +52,10 @@ minecraft {
 }
 
 repositories {
+    maven {
+        url = 'https://maven.squiddev.cc'
+        content { includeGroup 'cc.tweaked' }
+    }
     mavenCentral()
     maven {
         name = 'tterrag maven'
@@ -69,6 +73,14 @@ repositories {
 }
 
 dependencies {
+    compileOnly fg.deobf('cc.tweaked:cc-tweaked-1.20.1-forge-api:1.120.2')
+    testImplementation fg.deobf('cc.tweaked:cc-tweaked-1.20.1-forge-api:1.120.2')
+    testImplementation 'cc.tweaked:cc-tweaked-1.20.1-core-api:1.120.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.14.2'
+    if (providers.gradleProperty('withComputerCraft').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly fg.deobf('cc.tweaked:cc-tweaked-1.20.1-forge:1.120.2')
+    }
     minecraft 'net.minecraftforge:forge:1.20.1-47.4.13'
 
     // Create (IWrenchableの実装などでコード内で直接参照しているため必須)
@@ -87,6 +99,12 @@ dependencies {
     
     // JOML (Vector3d用)
     implementation "org.joml:joml:1.10.5"
+}
+
+test {
+    useJUnitPlatform()
+    workingDir layout.buildDirectory.get().asFile
+    systemProperty 'withComputerCraft', providers.gradleProperty('withComputerCraft').getOrElse('false')
 }
 
 jar {

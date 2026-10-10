@@ -4,6 +4,8 @@ import com.simibubi.create.api.equipment.goggles.IHaveHoveringInformation;
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
+import com.mk2525.vsfluidlink.compat.computercraft.ComputerCraftCompat;
+import com.mk2525.vsfluidlink.compat.computercraft.WiredConnection;
 import com.mojang.logging.LogUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -74,6 +76,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
     
     private BlockPos targetPos;
     private long lastTransferTick = -1;
+    private @Nullable WiredConnection wiredConnection;
 
     public ElectricWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -88,10 +91,15 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         super.onLoad();
         energyStorage.applyCapacity();
         VSLinkUtil.registerLinkBlockEntity(this);
+        if (level != null && !level.isClientSide) {
+            tickWiredConnection();
+            if (wiredConnection != null) level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+        }
     }
 
     @Override
     public void setRemoved() {
+        removeWiredConnection();
         VSLinkUtil.unregisterLinkBlockEntity(this);
         super.setRemoved();
     }
@@ -119,11 +127,43 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         
         if (!level.isClientSide) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            WiredConnection connection = wiredConnection;
+            if (connection != null && level.getServer() != null) {
+                if (level.getServer().isSameThread()) connection.linkChanged();
+                else level.getServer().execute(connection::linkChanged);
+            }
         }
     }
     
     public BlockPos getTargetPos() {
         return targetPos;
+    }
+
+    public @Nullable WiredConnection getWiredConnection() {
+        if (level == null || level.isClientSide || isRemoved() || level.getServer() == null
+                || !level.getServer().isSameThread()) return null;
+        if (wiredConnection == null) wiredConnection = ComputerCraftCompat.create(this);
+        return wiredConnection;
+    }
+
+    public void tickWiredConnection() {
+        WiredConnection connection = getWiredConnection();
+        if (connection != null) connection.tick();
+    }
+
+    private void removeWiredConnection() {
+        WiredConnection connection = wiredConnection;
+        wiredConnection = null;
+        if (connection == null || level == null || level.isClientSide || level.getServer() == null) return;
+        if (level.getServer().isSameThread()) connection.remove();
+        else level.getServer().execute(connection::remove);
+    }
+
+    @Override
+    public void onChunkUnloaded() {
+        removeWiredConnection();
+        VSLinkUtil.unregisterLinkBlockEntity(this);
+        super.onChunkUnloaded();
     }
 
     @Override
@@ -149,6 +189,7 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricWireConnectorBlockEntity blockEntity) {
         if (level.isClientSide) return;
+        blockEntity.tickWiredConnection();
 
         transferWithAdjacent(level, pos, blockEntity);
 
@@ -232,11 +273,17 @@ public class ElectricWireConnectorBlockEntity extends BlockEntity implements IHa
         if (cap == ForgeCapabilities.ENERGY) {
             return energyHandler.cast();
         }
+        WiredConnection connection = getWiredConnection();
+        if (connection != null) {
+            LazyOptional<T> optional = connection.getCapability(cap);
+            if (optional.isPresent()) return optional;
+        }
         return super.getCapability(cap, side);
     }
 
     @Override
     public void invalidateCaps() {
+        removeWiredConnection();
         super.invalidateCaps();
         energyHandler.invalidate();
     }
