@@ -3,6 +3,7 @@ package com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector;
 import com.mk2525.vsfluidlink.util.ConnectorOrientation;
 
 import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnectorBlock;
+import com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -77,7 +78,7 @@ public class ElectricMagnetWireConnectorBlock extends BaseEntityBlock implements
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ElectricMagnetWireConnectorBlockEntity(pos, state);
+        return PowerGridCompat.createMagnet(pos, state);
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.mk2525.vsfluidlink.content.ElectricWireConnector;
 import com.mk2525.vsfluidlink.util.ConnectorOrientation;
 
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
+import com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
 import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
@@ -190,7 +191,7 @@ public class ElectricWireConnectorBlock extends BaseEntityBlock implements IWren
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ElectricWireConnectorBlockEntity(pos, state);
+        return PowerGridCompat.create(pos, state);
     }
 
     @Override

@@ -45,8 +45,8 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     }
 
     @Override
-    public void setRemoved() {
-        super.setRemoved();
+    public void invalidate() {
+        super.invalidate();
         if (level != null && !level.isClientSide) {
             ALL_CONNECTORS.remove(getBlockPos());
         }
@@ -61,8 +61,8 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     }
 
     public static void tick(Level level, BlockPos pos, BlockState state, ElectricMagnetWireConnectorBlockEntity blockEntity) {
-        if (level.isClientSide) return;
         blockEntity.tickWiredConnection();
+        if (level.isClientSide) return;
 
         // --- Connection Check (every 20 ticks) ---
         if (blockEntity.checkCooldown-- <= 0) {

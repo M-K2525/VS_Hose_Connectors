@@ -53,6 +53,14 @@ minecraft {
 
 repositories {
     maven {
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
+    }
+    maven {
+        url = 'https://maven.architectury.dev'
+        content { includeGroup 'dev.architectury' }
+    }
+    maven {
         url = 'https://maven.squiddev.cc'
         content { includeGroup 'cc.tweaked' }
     }
@@ -73,6 +81,14 @@ repositories {
 }
 
 dependencies {
+    // Pin the Forge release ID: the version string is shared with NeoForge.
+    compileOnly fg.deobf('maven.modrinth:power-grid:CBWW1upo')
+    testImplementation fg.deobf('maven.modrinth:power-grid:CBWW1upo')
+    testImplementation 'org.ejml:ejml-simple:0.44.0'
+    if (providers.gradleProperty('withPowerGrid').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly fg.deobf('maven.modrinth:power-grid:CBWW1upo')
+        runtimeOnly fg.deobf('dev.architectury:architectury-forge:9.2.14')
+    }
     compileOnly fg.deobf('cc.tweaked:cc-tweaked-1.20.1-forge-api:1.120.2')
     testImplementation fg.deobf('cc.tweaked:cc-tweaked-1.20.1-forge-api:1.120.2')
     testImplementation 'cc.tweaked:cc-tweaked-1.20.1-core-api:1.120.2'

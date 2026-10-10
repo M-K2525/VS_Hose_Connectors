@@ -1,6 +1,7 @@
 package com.mk2525.vsfluidlink.registry;
 
 import com.mk2525.vsfluidlink.VsFluidLinkMod;
+import com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat;
 import com.mk2525.vsfluidlink.content.HoseConnector.HoseConnectorBlockEntity;
 import com.mk2525.vsfluidlink.content.MagnetHoseConnector.MagnetHoseConnectorBlockEntity;
 import com.mk2525.vsfluidlink.content.ItemHoseConnecotor.ItemHoseConnectorBlockEntity;
@@ -31,10 +32,10 @@ public class ModBlockEntities {
             () -> BlockEntityType.Builder .of(ItemMagnetHoseConnectorBlockEntity::new, ModBlocks.ITEM_MAGNET_HOSE_CONNECTOR.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ElectricWireConnectorBlockEntity>> ELECTRIC_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_wire_connector",
-            () -> BlockEntityType.Builder.of(ElectricWireConnectorBlockEntity::new, ModBlocks.ELECTRIC_WIRE_CONNECTOR.get()).build(null));
+            () -> BlockEntityType.Builder.of(PowerGridCompat::create, ModBlocks.ELECTRIC_WIRE_CONNECTOR.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ElectricMagnetWireConnectorBlockEntity>> ELECTRIC_MAGNET_WIRE_CONNECTOR = BLOCK_ENTITIES.register("electric_magnet_wire_connector",
-            () -> BlockEntityType.Builder.of(ElectricMagnetWireConnectorBlockEntity::new, ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get()).build(null));
+            () -> BlockEntityType.Builder.of(PowerGridCompat::createMagnet, ModBlocks.ELECTRIC_MAGNET_WIRE_CONNECTOR.get()).build(null));
 
     public static final RegistryObject<BlockEntityType<ChainConnectorBlockEntity>> CHAIN_CONNECTOR = BLOCK_ENTITIES.register("chain_connector",
             () -> BlockEntityType.Builder.of(ChainConnectorBlockEntity::new, ModBlocks.CHAIN_CONNECTOR.get()).build(null));

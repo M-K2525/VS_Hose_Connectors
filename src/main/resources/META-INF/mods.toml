@@ -21,6 +21,13 @@ Better transport between Valkyrien Skies ships.
     side="BOTH"
 
 [[dependencies.vsfluidlink]]
+    modId="powergrid"
+    mandatory=false
+    versionRange="[0.6.2,0.7.0)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
     modId="forge"
     mandatory=true
     versionRange="[47,)"

@@ -32,6 +32,7 @@
 
   "creativetab.vsfluidlink_tab": "VS Hose Connectors",
 
+  "vsfluidlink.powergrid.terminal": "コネクター端子",
   "vsfluidlink.message.selection_cleared": "選択を解除しました",
   "vsfluidlink.message.first_pos_selected": "接続地点1を設定しました: %s",
   "vsfluidlink.message.cannot_link_to_self": "同じブロックには接続できません",
