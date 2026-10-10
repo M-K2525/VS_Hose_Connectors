@@ -15,6 +15,13 @@ Better transport between Valkyrien Skies ships & Sable sub level.
 
 # 依存関係の定義
 [[dependencies.vsfluidlink]]
+    modId="tfmg"
+    type="optional"
+    versionRange="[0,)"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.vsfluidlink]]
     modId="powergrid"
     type="optional"
     versionRange="[0.6.2,0.7.0)"

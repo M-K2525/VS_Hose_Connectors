@@ -72,6 +72,11 @@ repositories {
 }
 
 dependencies {
+    compileOnly 'maven.modrinth:tfmg-community-edition:L0pdVzc7'
+    testImplementation 'maven.modrinth:tfmg-community-edition:L0pdVzc7'
+    if (providers.gradleProperty('withTFMG').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly 'maven.modrinth:tfmg-community-edition:L0pdVzc7'
+    }
     // Pin the NeoForge 1.21.1 release ID: "0.6.2" also names a Forge 1.20.1 artifact.
     compileOnly 'maven.modrinth:power-grid:jCkPHjmP'
     testImplementation 'maven.modrinth:power-grid:jCkPHjmP'
@@ -131,8 +136,12 @@ test {
     useJUnitPlatform()
     systemProperty 'withComputerCraft', providers.gradleProperty('withComputerCraft').getOrElse('false')
     exclude '**/compat/powergrid/**'
+    exclude '**/compat/tfmg/**'
     if (!providers.gradleProperty('withPowerGrid').map { it.toBoolean() }.getOrElse(false)) {
         classpath = sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('power-grid-') }
+    }
+    if (!providers.gradleProperty('withTFMG').map { it.toBoolean() }.getOrElse(false)) {
+        classpath = classpath.filter { !it.name.startsWith('tfmg-community-edition-') }
     }
 }
 
@@ -146,3 +155,13 @@ tasks.register('powerGridTest', Test) {
     include '**/compat/powergrid/**'
 }
 tasks.named('check') { dependsOn 'powerGridTest' }
+
+tasks.register('tfmgTest', Test) {
+    useJUnitPlatform()
+    workingDir = layout.buildDirectory.dir('tfmg-test-run').get().asFile
+    doFirst { workingDir.mkdirs() }
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath.filter { !it.name.startsWith('junit-fml-') }
+    include '**/compat/tfmg/**'
+}
+tasks.named('check') { dependsOn 'tfmgTest' }

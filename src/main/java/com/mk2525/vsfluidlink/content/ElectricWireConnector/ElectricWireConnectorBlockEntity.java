@@ -89,7 +89,10 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {}
 
-    protected void connectorLinkChanged() { PowerGridCompat.linkChanged(this); }
+    protected void connectorLinkChanged() {
+        PowerGridCompat.linkChanged(this);
+        com.mk2525.vsfluidlink.compat.tfmg.TfmgCompat.linkChanged(this);
+    }
 
     @Override
     public void remove() {
@@ -106,12 +109,31 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
 
     public void setTarget(BlockPos targetPos, Long targetSpaceId) {
         if (this.level == null) return;
-
         boolean wasLinked = this.targetPos != null;
-        boolean isLinked = targetPos != null;
-
         this.targetPos = targetPos;
         this.targetSpaceId = targetPos == null ? null : targetSpaceId;
+        publishTargetChange(wasLinked);
+    }
+
+    public static boolean connectPair(ElectricWireConnectorBlockEntity first, ElectricWireConnectorBlockEntity second) {
+        if (first == second || first.level == null || first.level != second.level
+                || first.level.isClientSide || first.isRemoved() || second.isRemoved()) return false;
+        Long firstSpace = VSLinkUtil.getSpatialId(first.level, first.getBlockPos());
+        Long secondSpace = VSLinkUtil.getSpatialId(second.level, second.getBlockPos());
+        boolean firstWasLinked = first.targetPos != null;
+        boolean secondWasLinked = second.targetPos != null;
+        // Publish only after both endpoints can resolve the reciprocal link.
+        first.targetPos = second.getBlockPos();
+        first.targetSpaceId = secondSpace;
+        second.targetPos = first.getBlockPos();
+        second.targetSpaceId = firstSpace;
+        first.publishTargetChange(firstWasLinked);
+        second.publishTargetChange(secondWasLinked);
+        return true;
+    }
+
+    private void publishTargetChange(boolean wasLinked) {
+        boolean isLinked = targetPos != null;
         setChanged();
 
         if (wasLinked != isLinked) {
@@ -304,6 +326,10 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
         return energyStorage;
     }
 
+    public @Nullable IEnergyStorage getEnergyCapability(@Nullable net.minecraft.core.Direction side) {
+        return com.mk2525.vsfluidlink.compat.tfmg.TfmgCompat.usesNativePort(this, side) ? null : energyStorage;
+    }
+
     private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity) {
         for (net.minecraft.core.Direction direction : net.minecraft.core.Direction.values()) {
             transferWithAdjacent(level, pos, blockEntity, direction);
@@ -311,6 +337,7 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
     }
 
     private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity, net.minecraft.core.Direction direction) {
+        if (blockEntity.getEnergyCapability(direction) == null) return;
         BlockPos neighbourPos = pos.relative(direction);
         if (!level.isLoaded(neighbourPos)) {
             return;

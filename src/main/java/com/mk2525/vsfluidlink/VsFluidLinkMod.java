@@ -74,13 +74,13 @@ public class VsFluidLinkMod {
         event.registerBlockEntity(
                 Capabilities.EnergyStorage.BLOCK,
                 ModBlockEntities.ELECTRIC_WIRE_CONNECTOR.get(),
-                (be, context) -> be.getEnergyStorage()
+                (be, context) -> be.getEnergyCapability(context)
         );
 
         event.registerBlockEntity(
                 Capabilities.EnergyStorage.BLOCK,
                 ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(),
-                (be, context) -> be.getEnergyStorage()
+                (be, context) -> be.getEnergyCapability(context)
         );
     }
 

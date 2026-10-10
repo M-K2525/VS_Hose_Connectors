@@ -11,6 +11,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -28,7 +29,11 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     private int checkCooldown = 0;
 
     public ElectricMagnetWireConnectorBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), pos, state);
+        this(ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), pos, state);
+    }
+
+    protected ElectricMagnetWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     @Override
@@ -105,8 +110,13 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
                         if (!scanBox.contains(targetWorldPos)) continue;
 
                         if (isConnectorAt(level, pos, facing, scanPos)) {
-                            blockEntity.setTargetPos(scanPos);
-                            break; // Found a target, stop scanning
+                            BlockEntity candidate = level.getBlockEntity(scanPos);
+                            if (candidate instanceof ElectricMagnetWireConnectorBlockEntity target
+                                    && connectPair(blockEntity, target)) {
+                                level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
+                                level.playSound(null, scanPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
+                                break;
+                            }
                         }
                     }
                 }
@@ -145,10 +155,6 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
         }
 
         if (areFacingsOppositeInWorld(level, selfPos, selfFacing, scanPos, scanState.getValue(ElectricMagnetWireConnectorBlock.FACING))) {
-            level.playSound(null, selfPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
-            level.playSound(null, scanPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
-
-            targetConnector.setTargetPos(selfPos);
             return true;
         }
         return false;
