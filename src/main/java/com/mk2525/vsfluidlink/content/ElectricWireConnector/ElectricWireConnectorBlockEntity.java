@@ -7,6 +7,7 @@ import com.mk2525.vsfluidlink.util.VSLinkUtil;
 import com.mk2525.vsfluidlink.compat.computercraft.ComputerCraftCompat;
 import com.mk2525.vsfluidlink.compat.computercraft.WiredConnection;
 import com.mk2525.vsfluidlink.compat.powergrid.PowerGridCompat;
+import com.mk2525.vsfluidlink.compat.tfmg.TfmgCompat;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.mojang.logging.LogUtils;
@@ -72,7 +73,7 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
         }
     };
 
-    protected final LazyOptional<IEnergyStorage> energyHandler = LazyOptional.of(() -> energyStorage);
+    protected LazyOptional<IEnergyStorage> energyHandler = LazyOptional.of(() -> energyStorage);
     
     private BlockPos targetPos;
     private long lastTransferTick = -1;
@@ -121,11 +122,25 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
 
     public void setTargetPos(BlockPos targetPos) {
         if (this.level == null) return;
-        
         boolean wasLinked = this.targetPos != null;
-        boolean isLinked = targetPos != null;
-        
         this.targetPos = targetPos;
+        publishLink(wasLinked);
+    }
+
+    public static void connectPair(ElectricWireConnectorBlockEntity first, ElectricWireConnectorBlockEntity second) {
+        if (first == second || first.level == null || first.level != second.level
+                || first.getBlockPos().equals(second.getBlockPos()) || first.isRemoved() || second.isRemoved()) return;
+        boolean firstLinked = first.targetPos != null;
+        boolean secondLinked = second.targetPos != null;
+        // Both ends must be reciprocal before block updates or external network callbacks run.
+        first.targetPos = second.getBlockPos();
+        second.targetPos = first.getBlockPos();
+        first.publishLink(firstLinked);
+        second.publishLink(secondLinked);
+    }
+
+    private void publishLink(boolean wasLinked) {
+        boolean isLinked = targetPos != null;
         setChanged();
         
         if (wasLinked != isLinked) {
@@ -138,8 +153,8 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
         if (!level.isClientSide) {
             level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             if (level.getServer() != null) {
-                if (level.getServer().isSameThread()) PowerGridCompat.linkChanged(this);
-                else level.getServer().execute(() -> PowerGridCompat.linkChanged(this));
+                if (level.getServer().isSameThread()) connectorLinkChanged();
+                else level.getServer().execute(this::connectorLinkChanged);
             }
             WiredConnection connection = wiredConnection;
             if (connection != null && level.getServer() != null) {
@@ -147,6 +162,22 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
                 else level.getServer().execute(connection::linkChanged);
             }
         }
+    }
+
+    private void connectorLinkChanged() {
+        PowerGridCompat.linkChanged(this);
+        TfmgCompat.linkChanged(this);
+    }
+
+    public void refreshEnergyCapability() {
+        energyHandler.invalidate();
+        energyHandler = LazyOptional.of(() -> energyStorage);
+    }
+
+    @Override
+    public void reviveCaps() {
+        super.reviveCaps();
+        refreshEnergyCapability();
     }
     
     public BlockPos getTargetPos() {
@@ -268,6 +299,7 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (cap == ForgeCapabilities.ENERGY) {
+            if (TfmgCompat.usesNativePort(this, side)) return LazyOptional.empty();
             return energyHandler.cast();
         }
         WiredConnection connection = getWiredConnection();
@@ -324,6 +356,7 @@ public class ElectricWireConnectorBlockEntity extends SmartBlockEntity implement
 
     private static void transferWithAdjacent(Level level, BlockPos pos, ElectricWireConnectorBlockEntity blockEntity) {
         for (Direction direction : Direction.values()) {
+            if (TfmgCompat.usesNativePort(blockEntity, direction)) continue;
             BlockPos neighbourPos = pos.relative(direction);
             if (!level.isLoaded(neighbourPos)) {
                 continue;

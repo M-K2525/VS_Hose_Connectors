@@ -11,11 +11,11 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +33,11 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
     private int checkCooldown = 0;
 
     public ElectricMagnetWireConnectorBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), pos, state);
+        this(ModBlockEntities.ELECTRIC_MAGNET_WIRE_CONNECTOR.get(), pos, state);
+    }
+
+    protected ElectricMagnetWireConnectorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     @Override
@@ -54,9 +58,6 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
 
     @Override
     public @NotNull <T> LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (cap == ForgeCapabilities.ENERGY) {
-            return energyHandler.cast();
-        }
         return super.getCapability(cap, side);
     }
 
@@ -118,7 +119,9 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
                         if (!scanBox.contains(targetWorldPos)) continue;
                         
                         if (isConnectorAt(level, pos, facing, scanPos)) {
-                            blockEntity.setTargetPos(scanPos);
+                            connectPair(blockEntity, (ElectricMagnetWireConnectorBlockEntity) level.getBlockEntity(scanPos));
+                            level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
+                            level.playSound(null, scanPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                             break; // Found a target, stop scanning
                         }
                     }
@@ -157,14 +160,8 @@ public class ElectricMagnetWireConnectorBlockEntity extends ElectricWireConnecto
             return false;
         }
 
-        if (areFacingsOppositeInWorld(level, selfPos, selfFacing, scanPos, scanState.getValue(ElectricMagnetWireConnectorBlock.FACING))) {
-            level.playSound(null, selfPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
-            level.playSound(null, scanPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
-
-            targetConnector.setTargetPos(selfPos);
-            return true;
-        }
-        return false;
+        return areFacingsOppositeInWorld(level, selfPos, selfFacing, scanPos,
+                scanState.getValue(ElectricMagnetWireConnectorBlock.FACING));
     }
     
     private static AABB getScanBoxInWorld(Level level, BlockPos pos, Direction facing) {

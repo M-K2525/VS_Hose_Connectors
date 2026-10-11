@@ -81,6 +81,12 @@ repositories {
 }
 
 dependencies {
+    // Original TFMG 1.0.2f for Forge 1.20.1 (not the NeoForge release with the same version).
+    compileOnly fg.deobf('maven.modrinth:create-tfmg:ZNOx0jhg')
+    testImplementation fg.deobf('maven.modrinth:create-tfmg:ZNOx0jhg')
+    if (providers.gradleProperty('withTFMG').map { it.toBoolean() }.getOrElse(false)) {
+        runtimeOnly fg.deobf('maven.modrinth:create-tfmg:ZNOx0jhg')
+    }
     // Pin the Forge release ID: the version string is shared with NeoForge.
     compileOnly fg.deobf('maven.modrinth:power-grid:CBWW1upo')
     testImplementation fg.deobf('maven.modrinth:power-grid:CBWW1upo')

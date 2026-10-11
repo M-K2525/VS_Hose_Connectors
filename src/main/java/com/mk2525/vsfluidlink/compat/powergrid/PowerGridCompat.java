@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.compat.powergrid;
 
 import com.mk2525.vsfluidlink.content.ElectricWireConnector.ElectricWireConnectorBlockEntity;
 import com.mk2525.vsfluidlink.content.ElectricMagnetWireConnector.ElectricMagnetWireConnectorBlockEntity;
+import com.mk2525.vsfluidlink.compat.tfmg.TfmgCompat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fml.ModList;
@@ -11,11 +12,13 @@ public final class PowerGridCompat {
     private PowerGridCompat() {}
 
     public static ElectricWireConnectorBlockEntity create(BlockPos pos, BlockState state) {
+        if (TfmgCompat.enabled()) return TfmgCompat.create(pos, state);
         return ModList.get().isLoaded("powergrid")
                 ? GridConnectorFactory.create(pos, state) : new ElectricWireConnectorBlockEntity(pos, state);
     }
 
     public static ElectricMagnetWireConnectorBlockEntity createMagnet(BlockPos pos, BlockState state) {
+        if (TfmgCompat.enabled()) return TfmgCompat.createMagnet(pos, state);
         return ModList.get().isLoaded("powergrid")
                 ? GridConnectorFactory.createMagnet(pos, state) : new ElectricMagnetWireConnectorBlockEntity(pos, state);
     }
@@ -26,5 +29,13 @@ public final class PowerGridCompat {
 
     public static void remove(ElectricWireConnectorBlockEntity owner) {
         if (ModList.get().isLoaded("powergrid")) GridConnectorFactory.remove(owner);
+    }
+
+    public static ElectricWireConnectorBlockEntity createTfmg(BlockPos pos, BlockState state) {
+        return GridTfmgConnectorFactory.create(pos, state);
+    }
+
+    public static ElectricMagnetWireConnectorBlockEntity createTfmgMagnet(BlockPos pos, BlockState state) {
+        return GridTfmgConnectorFactory.createMagnet(pos, state);
     }
 }
