@@ -38,6 +38,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TfmgNetworkTest {
+    private static ElectricalNetwork nativeNetwork(IElectric node) {
+        var level = node.getLevelAccessor();
+        var representative = level.getBlockEntity(BlockPos.of(node.getData().getId()));
+        if (representative instanceof IElectric root)
+            return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(root);
+        ElectricNetworkManager.networks.computeIfAbsent(level, ignored -> new HashMap<>())
+                .remove(node.getData().getId());
+        return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(node);
+    }
     @BeforeAll
     static void bootstrap() throws Exception {
         try (var loading = mockStatic(LoadingModList.class)) {
@@ -86,7 +95,7 @@ class TfmgNetworkTest {
         @Override public float powerGeneration() { return generation; }
         @Override public float resistance() { return resistance; }
         @Override public ElectricalNetwork getOrCreateElectricNetwork() {
-            return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(this);
+            return nativeNetwork(this);
         }
     }
 
@@ -132,7 +141,7 @@ class TfmgNetworkTest {
         }
         @Override public void sendStuff() {}
         @Override public ElectricalNetwork getOrCreateElectricNetwork() {
-            return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(this);
+            return nativeNetwork(this);
         }
     }
 
@@ -150,7 +159,7 @@ class TfmgNetworkTest {
         @Override public void lazyTick() {}
         @Override public void sendStuff() {}
         @Override public ElectricalNetwork getOrCreateElectricNetwork() {
-            return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(this);
+            return nativeNetwork(this);
         }
     }
 
@@ -177,7 +186,7 @@ class TfmgNetworkTest {
             }
         }
         @Override public ElectricalNetwork getOrCreateElectricNetwork() {
-            return TfmgBehaviour.MANAGER.getOrCreateNetworkFor(this);
+            return nativeNetwork(this);
         }
     }
 
@@ -194,6 +203,7 @@ class TfmgNetworkTest {
                 side.setBoolean(level, client);
             } catch (ReflectiveOperationException e) { throw new AssertionError(e); }
             when(level.isClientSide()).thenReturn(client);
+            when(level.dimension()).thenReturn(Level.OVERWORLD);
             mods.when(ModList::get).thenReturn(mock(ModList.class));
             var server = mock(MinecraftServer.class);
             when(level.getServer()).thenReturn(server);
@@ -250,6 +260,201 @@ class TfmgNetworkTest {
         @Override public void close() {
             try { ElectricNetworkManager.networks.remove(level); }
             finally { spatial.close(); mods.close(); }
+        }
+    }
+
+    @Test void sourceSideTerminalMustHaveWireOrMatchingPhysicalPort() {
+        for (boolean client : List.of(false, true)) {
+            try (var h = new Harness(client)) {
+                h.enableTFMG();
+                // Layout read from the supplied Sable snapshot, translated to small coordinates.
+                var source = h.put(new Machine(new BlockPos(0, 1, 2), 255, 12080, 100000));
+                var sourceTerminal = h.put(new Cable(new BlockPos(1, 1, 2)));
+                sourceTerminal.slot = Direction.WEST;
+                var input = h.put(new Cable(new BlockPos(1, 2, 1)));
+                input.slot = Direction.DOWN;
+                var lightTerminal = h.put(new Cable(new BlockPos(1, 3, 1)));
+                lightTerminal.slot = Direction.WEST;
+                var sourceLamp = h.put(new Lamp(new BlockPos(0, 3, 1)));
+                var branchTerminal = h.put(new Cable(new BlockPos(1, 2, 3)));
+                branchTerminal.slot = Direction.DOWN;
+                var type = mock(CableType.class);
+                for (var end : List.of(lightTerminal, branchTerminal)) {
+                    var wire = new CableConnection(sourceTerminal.getPos(), end.getPos(), type, true);
+                    sourceTerminal.connections.add(wire);
+                    end.connections.add(wire);
+                }
+                var a = h.connector(1);
+                var b = h.connector(4);
+                var motor = h.put(new Motor(new BlockPos(5, 1, 1)));
+                var lamp = h.put(new Lamp(new BlockPos(4, 2, 1)));
+                h.link(a, b);
+                sourceTerminal.onConnected();
+                TfmgBehaviour.rebuild(h.level, List.of(source, sourceTerminal, lightTerminal, sourceLamp, branchTerminal));
+                Connector branch = null;
+                for (int tick = 0; tick < 120; tick++) {
+                    when(h.level.getGameTime()).thenReturn((long) tick);
+                    if (tick == 40) {
+                        branch = h.put(new Connector(new BlockPos(1, 1, 3)));
+                        branch.tfmg().initialize();
+                    }
+                    if (tick == 80) {
+                        var wire = new CableConnection(sourceTerminal.getPos(), input.getPos(), type, true);
+                        sourceTerminal.connections.add(wire);
+                        input.connections.add(wire);
+                        a.tfmg().refresh();
+                    }
+                    source.tickElectricity();
+                    for (var cable : List.of(sourceTerminal, input, lightTerminal, branchTerminal)) cable.tick();
+                    a.tfmg().tick();
+                    b.tfmg().tick();
+                    if (branch != null) branch.tfmg().tick();
+                    motor.tickElectricity();
+                    motor.flushRotation();
+                    sourceLamp.tick();
+                    lamp.tick();
+                    assertEquals(15, sourceLamp.getBlockState().getValue(LightBulbBlock.LIGHT), "source tick " + tick + ", client=" + client);
+                    assertEquals(tick < 80 ? 0 : 15, lamp.getBlockState().getValue(LightBulbBlock.LIGHT), "tick " + tick);
+                    assertEquals(tick < 80 ? 0 : 204, motor.getGeneratedSpeed(), "tick " + tick);
+                    assertEquals(0, a.getPowerUsage());
+                }
+            }
+        }
+    }
+
+    @Test void diagnosticsIdentifySideAndPhysicalPorts() {
+        for (boolean client : List.of(false, true)) {
+            try (var h = new Harness(client)) {
+                var cable = h.put(new Cable(new BlockPos(0, 1, 1)));
+                cable.slot = Direction.DOWN;
+                var lines = TfmgDiagnostics.report(h.level, cable.getPos());
+                assertTrue(lines.getFirst().contains("side=" + (client ? "client" : "server")));
+                assertTrue(lines.stream().anyMatch(line -> line.contains("ports=[down]")));
+                assertFalse(ElectricNetworkManager.networks.containsKey(h.level));
+            }
+        }
+    }
+
+    @Test void diagnosticsDoNotCreateOrRepairNetworks() {
+        try (var h = new Harness()) {
+            var source = h.machine(0, 255, 12080, 100000);
+            assertFalse(ElectricNetworkManager.networks.containsKey(h.level));
+            var missing = TfmgDiagnostics.report(h.level, source.getPos());
+            assertTrue(missing.stream().anyMatch(line -> line.contains("registered=false")));
+            assertFalse(ElectricNetworkManager.networks.containsKey(h.level));
+            var a = h.connector(1);
+            var b = h.connector(4);
+            h.link(a, b);
+            var registrations = new HashMap<>(ElectricNetworkManager.networks.get(h.level));
+            var members = List.copyOf(source.getOrCreateElectricNetwork().members);
+            long id = source.getData().getId();
+            boolean pending = source.getData().updateNextTick;
+            TfmgDiagnostics.report(h.level, a.getPos());
+            assertEquals(registrations, ElectricNetworkManager.networks.get(h.level));
+            assertEquals(members, source.getOrCreateElectricNetwork().members);
+            assertEquals(id, source.getData().getId());
+            assertEquals(pending, source.getData().updateNextTick);
+        }
+    }
+
+    @Test void placingConnectorUnderAlreadyWiredTerminalPreservesExistingLoads() {
+        for (boolean client : List.of(false, true)) {
+            try (var h = new Harness(client)) {
+                h.enableTFMG();
+                var source = h.machine(0, 255, 12080, 100000);
+                var a = h.connector(1);
+                var b = h.connector(4);
+                var motor = h.put(new Motor(new BlockPos(5, 1, 1)));
+                var lamp = h.put(new Lamp(new BlockPos(4, 2, 1)));
+                var sourceTerminal = h.put(new Cable(new BlockPos(0, 2, 1)));
+                sourceTerminal.slot = Direction.DOWN;
+                var branchTerminal = h.put(new Cable(new BlockPos(0, 4, 1)));
+                branchTerminal.slot = Direction.DOWN;
+                var state = mock(BlockState.class);
+                when(state.getBlock()).thenReturn(Blocks.CHEST);
+                when(state.getValue(com.drmangotea.tfmg.base.blocks.WallMountBlock.FACING))
+                        .thenReturn(Direction.UP);
+                branchTerminal.setBlockState(state);
+                var wire = new CableConnection(sourceTerminal.getPos(), branchTerminal.getPos(),
+                        mock(CableType.class), true);
+                sourceTerminal.connections.add(wire);
+                branchTerminal.connections.add(wire);
+                h.link(a, b);
+                Connector branch = null;
+                for (int tick = 0; tick < 120; tick++) {
+                    when(h.level.getGameTime()).thenReturn((long) tick);
+                    if (tick == 40) {
+                        branch = h.put(new Connector(new BlockPos(0, 3, 1)));
+                        branch.tfmg().initialize();
+                        branchTerminal.onPlaced();
+                    }
+                    if (tick == 80) {
+                        branch.tfmg().stop();
+                        h.entities.remove(branch.getBlockPos());
+                        branchTerminal.onPlaced();
+                    }
+                    source.tickElectricity();
+                    sourceTerminal.tick();
+                    branchTerminal.tick();
+                    a.tfmg().tick();
+                    b.tfmg().tick();
+                    if (branch != null) branch.tfmg().tick();
+                    motor.tickElectricity();
+                    motor.flushRotation();
+                    lamp.tick();
+                    assertEquals(204, motor.getGeneratedSpeed(), "motor tick " + tick + ", client=" + client);
+                    assertEquals(15, lamp.getBlockState().getValue(LightBulbBlock.LIGHT), "lamp tick " + tick);
+                    assertSame(source.getOrCreateElectricNetwork(), motor.getOrCreateElectricNetwork());
+                }
+            }
+        }
+    }
+
+    @Test void addingUnlinkedBranchAndThirdNetworkPreservesExistingLoads() {
+        for (boolean client : List.of(false, true)) {
+            try (var h = new Harness(client)) {
+                h.enableTFMG();
+                var source = h.machine(0, 255, 12080, 100000);
+                var a = h.connector(1);
+                var b = h.connector(4);
+                var motor = h.put(new Motor(new BlockPos(5, 1, 1)));
+                var lamp = h.put(new Lamp(new BlockPos(4, 2, 1)));
+                h.link(a, b);
+                for (int step = 0; step < 4; step++) {
+                    if (step == 1) {
+                        var branch = h.put(new Connector(new BlockPos(0, 2, 1)));
+                        branch.tfmg().initialize();
+                    }
+                    if (step == 2) {
+                        var third = h.connector(8);
+                        h.put(new Lamp(new BlockPos(9, 1, 1)));
+                        var branch = (Connector) h.entities.get(new BlockPos(0, 2, 1));
+                        h.link(branch, third);
+                    }
+                    if (step == 3) {
+                        // The native onPlaced sequence can run after a connector's initialization.
+                        var network = source.getOrCreateElectricNetwork();
+                        source.setNetwork(source.getPos().asLong());
+                        network.add(source);
+                        source.onConnected();
+                        source.updateNextTick();
+                    }
+                    for (int tick = step * 40; tick < (step + 1) * 40; tick++) {
+                        when(h.level.getGameTime()).thenReturn((long) tick);
+                        source.tickElectricity();
+                        for (var be : List.copyOf(h.entities.values()))
+                            if (be instanceof Connector connector) connector.tfmg().tick();
+                        motor.tickElectricity();
+                        motor.flushRotation();
+                        lamp.tick();
+                        assertEquals(204, motor.getGeneratedSpeed(), "step " + step + ", tick " + tick);
+                        assertEquals(15, lamp.getBlockState().getValue(LightBulbBlock.LIGHT));
+                        assertEquals(0, a.getPowerUsage());
+                        assertEquals(0, b.getPowerUsage());
+                        assertSame(source.getOrCreateElectricNetwork(), motor.getOrCreateElectricNetwork());
+                    }
+                }
+            }
         }
     }
 
@@ -691,11 +896,11 @@ class TfmgNetworkTest {
             var info = mock(net.neoforged.neoforgespi.language.IModInfo.class);
             when(container.getModInfo()).thenReturn(info);
             when(ModList.get().getModContainerById("tfmg")).thenAnswer(call -> Optional.of(container));
-            for (String version : List.of("1.3.0-community", "1.3.1-community", "1.3.2a-community")) {
+            for (String version : List.of("1.3.2a-community")) {
                 when(info.getVersion()).thenReturn(new org.apache.maven.artifact.versioning.DefaultArtifactVersion(version));
                 assertTrue(TfmgCompat.enabled(), version);
             }
-            for (String version : List.of("1.2.0", "1.3.2", "1.2.4b-community", "1.4.0-community", "1.0.2f")) {
+            for (String version : List.of("1.3.0-community", "1.3.1-community", "1.3.3-community", "1.2.0", "1.3.2", "1.2.4b-community", "1.4.0-community", "1.0.2f")) {
                 when(info.getVersion()).thenReturn(new org.apache.maven.artifact.versioning.DefaultArtifactVersion(version));
                 assertFalse(TfmgCompat.enabled(), version);
             }

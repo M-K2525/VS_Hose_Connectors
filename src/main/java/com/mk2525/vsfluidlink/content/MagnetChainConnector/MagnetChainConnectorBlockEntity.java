@@ -352,12 +352,6 @@ public class MagnetChainConnectorBlockEntity extends DirectionalShaftHalvesBlock
                     return;
                 }
 
-                // 角度チェック (0.800未満 = 約37度以上ずれたら切断)
-                // dot積が 1.0 に近いほど平行。
-                // 0.800 を下回ったら切断。
-                // ただし、対向しているので -1.0 に近いほど良い。
-                // つまり、dot < -0.800 ならOK。 dot > -0.800 なら切断。
-
                 Direction myFacing = getBlockState().getValue(MagnetChainConnectorBlock.FACING);
                 BlockState targetState = targetBe.getBlockState();
                 if (!(targetState.getBlock() instanceof MagnetChainConnectorBlock)) {
@@ -371,7 +365,7 @@ public class MagnetChainConnectorBlockEntity extends DirectionalShaftHalvesBlock
 
                 double dot = myTransform.direction.dot(targetTransform.direction);
 
-                if (dot > -0.800) { // 角度が開きすぎた場合
+                if (VsFluidLinkConfig.shouldMagnetDisconnect(dot, true)) {
                     disconnect();
                     return;
                 }
@@ -458,7 +452,7 @@ public class MagnetChainConnectorBlockEntity extends DirectionalShaftHalvesBlock
         VSLinkUtil.WorldTransform transform1 = VSLinkUtil.getWorldTransform(level, pos1, facing1);
         VSLinkUtil.WorldTransform transform2 = VSLinkUtil.getWorldTransform(level, pos2, facing2);
 
-        return transform1.direction.dot(transform2.direction) < -0.890; // approx 170 degrees
+        return VsFluidLinkConfig.canMagnetConnect(transform1.direction.dot(transform2.direction));
     }
 
     @Override

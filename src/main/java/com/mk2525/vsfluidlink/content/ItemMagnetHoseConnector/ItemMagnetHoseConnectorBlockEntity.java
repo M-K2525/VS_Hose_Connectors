@@ -208,7 +208,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
 
                 // 角度チェック
                 double dot = myTransform.direction.dot(targetTransform.direction);
-                if (dot > -0.500) { // 角度が開きすぎた場合
+                if (VsFluidLinkConfig.shouldMagnetDisconnect(dot, false)) {
                     disconnect();
                     return;
                 }
@@ -318,7 +318,7 @@ public class ItemMagnetHoseConnectorBlockEntity extends KineticBlockEntity {
         VSLinkUtil.WorldTransform candidateTransform = candidateBe.getWorldTransform(false);
 
         double dot = myTransform.direction.dot(candidateTransform.direction);
-        return dot < -0.890; // approx 170 degrees
+        return VsFluidLinkConfig.canMagnetConnect(dot);
     }
 
     @Override

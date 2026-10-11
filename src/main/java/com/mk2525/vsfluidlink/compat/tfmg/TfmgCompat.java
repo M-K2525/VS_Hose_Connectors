@@ -15,7 +15,7 @@ public final class TfmgCompat {
         return ModList.get().getModContainerById("tfmg")
                 // Maven's numeric getters do not parse CE's "1.3.2a-community" qualifier.
                 .map(mod -> mod.getModInfo().getVersion().toString())
-                .map(version -> version.matches("1\\.3\\.\\d+[a-z]*-community"))
+                .map(version -> version.equals("1.3.2a-community"))
                 .orElse(false);
     }
 

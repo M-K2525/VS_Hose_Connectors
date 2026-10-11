@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.mk2525.vsfluidlink.mixin",
+  "plugin": "com.mk2525.vsfluidlink.mixin.TfmgMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": ["TfmgSpoolItemMixin"],
+  "injectors": {"defaultRequire": 1}
+}

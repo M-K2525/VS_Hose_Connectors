@@ -7,6 +7,9 @@ public class VsFluidLinkConfig {
     public static final int DEFAULT_FLUID_CAPACITY = 1000;
     public static final int DEFAULT_ITEM_SLOTS = 1;
     public static final int DEFAULT_ENERGY_CAPACITY = 100000;
+    public static final double DEFAULT_MAGNET_CONNECTION_ANGLE = 45.0;
+    public static final double DEFAULT_MAGNET_DISCONNECTION_ANGLE = 90.0;
+    public static final double DEFAULT_MAGNET_CHAIN_DISCONNECTION_ANGLE = 90.0;
     public static final ServerConfig SERVER;
     public static final ModConfigSpec SERVER_SPEC;
 
@@ -28,10 +31,25 @@ public class VsFluidLinkConfig {
         return SERVER_SPEC.isLoaded() ? SERVER.energyCapacity.get() : DEFAULT_ENERGY_CAPACITY;
     }
 
+    public static boolean canMagnetConnect(double facingDot) {
+        double angle = SERVER_SPEC.isLoaded() ? SERVER.magnetMaxConnectionAngle.get() : DEFAULT_MAGNET_CONNECTION_ANGLE;
+        return facingDot < -Math.cos(Math.toRadians(angle));
+    }
+
+    public static boolean shouldMagnetDisconnect(double facingDot, boolean chain) {
+        double angle = chain
+                ? (SERVER_SPEC.isLoaded() ? SERVER.magnetChainDisconnectionAngle.get() : DEFAULT_MAGNET_CHAIN_DISCONNECTION_ANGLE)
+                : (SERVER_SPEC.isLoaded() ? SERVER.magnetDisconnectionAngle.get() : DEFAULT_MAGNET_DISCONNECTION_ANGLE);
+        return facingDot > -Math.cos(Math.toRadians(angle));
+    }
+
     public static class ServerConfig {
         public final ModConfigSpec.DoubleValue maxLinkDistance;
         public final ModConfigSpec.IntValue magnetScanDistance;
         public final ModConfigSpec.IntValue magnetScanRadius;
+        public final ModConfigSpec.DoubleValue magnetMaxConnectionAngle;
+        public final ModConfigSpec.DoubleValue magnetDisconnectionAngle;
+        public final ModConfigSpec.DoubleValue magnetChainDisconnectionAngle;
         public final ModConfigSpec.BooleanValue restrictWorldToWorldConnection;
         public final ModConfigSpec.BooleanValue restrictIntraShipConnection;
         public final ModConfigSpec.IntValue fluidCapacity;
@@ -52,6 +70,19 @@ public class VsFluidLinkConfig {
             magnetScanRadius = builder
                     .comment("Radius around the scan line to check for connectors (Scan box size will be 1 + radius * 2).")
                     .defineInRange("magnetScanRadius", 1, 0, 10);
+
+            magnetMaxConnectionAngle = builder
+                    .comment("Maximum facing misalignment from directly opposing (0 degrees) for all magnet connectors to connect.",
+                            "Degrees, not the angle to the line between blocks. Connection requires strictly less than this angle.")
+                    .defineInRange("magnetMaxConnectionAngle", DEFAULT_MAGNET_CONNECTION_ANGLE, 0.0, 180.0);
+            magnetDisconnectionAngle = builder
+                    .comment("Facing misalignment in degrees above which fluid, item and electric magnet connectors disconnect.",
+                            "Use a value larger than magnetMaxConnectionAngle to avoid repeated connecting and disconnecting.")
+                    .defineInRange("magnetDisconnectionAngle", DEFAULT_MAGNET_DISCONNECTION_ANGLE, 0.0, 180.0);
+            magnetChainDisconnectionAngle = builder
+                    .comment("Facing misalignment in degrees above which magnet chain connectors disconnect.",
+                            "Use a value larger than magnetMaxConnectionAngle to avoid repeated connecting and disconnecting.")
+                    .defineInRange("magnetChainDisconnectionAngle", DEFAULT_MAGNET_CHAIN_DISCONNECTION_ANGLE, 0.0, 180.0);
             
             restrictWorldToWorldConnection = builder
                     .comment("If true, connections between two blocks that are both NOT on a ship (i.e., on the ground) will be blocked.")
