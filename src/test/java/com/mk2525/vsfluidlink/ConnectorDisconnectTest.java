@@ -90,7 +90,10 @@ class ConnectorDisconnectTest {
         var clearing = doAnswer(call -> { pos.set(null); space.set(null); return null; }).when(source);
         entityType.getMethod("setTargetPos", BlockPos.class).invoke(clearing, new Object[]{null});
 
-        try (var spatial = mockStatic(VSLinkUtil.class); var selection = mockStatic(LinkSelection.class)) {
+        try (var spatial = mockStatic(VSLinkUtil.class); var selection = mockStatic(LinkSelection.class);
+                var config = mockStatic(VsFluidLinkConfig.class, CALLS_REAL_METHODS)) {
+            config.when(VsFluidLinkConfig::wrenchRightClickAction)
+                    .thenReturn(VsFluidLinkConfig.WrenchRightClickAction.CONNECT);
             spatial.when(() -> VSLinkUtil.resolveBlockEntity(level, TARGET, spaceId, entityType)).thenReturn(peer);
             if (blockType == null) {
                 var method = entityType.getDeclaredMethod("disconnect", Level.class, BlockPos.class, entityType);

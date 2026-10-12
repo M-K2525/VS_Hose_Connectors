@@ -1,6 +1,7 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
 import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+import com.mk2525.vsfluidlink.util.ConnectorInteraction;
 
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.util.LinkSelection;
@@ -111,21 +112,24 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getItemInHand(hand);
 
-        if (heldItem.getItem().getDescriptionId().contains("wrench")) {
+        if (ConnectorInteraction.isWrench(heldItem)) {
+            if (player.isShiftKeyDown()) return onSneakWrenched(state, new UseOnContext(player, hand, hit));
+            if (VsFluidLinkConfig.wrenchRightClickAction() == VsFluidLinkConfig.WrenchRightClickAction.ROTATE) {
+                return onWrenched(state, new UseOnContext(player, hand, hit));
+            }
+        }
+
+        if (ConnectorInteraction.canLink(heldItem, player.isShiftKeyDown())) {
             if (level.isClientSide) return InteractionResult.SUCCESS;
 
             CompoundTag tag = new CompoundTag();
-            LinkTarget selectedTarget = LinkSelection.getTarget(player, LINK_SELECTION_CHANNEL);
+            LinkTarget selectedTarget = LinkSelection.getValidTarget(player, LINK_SELECTION_CHANNEL, HoseConnectorBlockEntity.class);
             if (selectedTarget != null) {
                 CompoundTag selectedTag = new CompoundTag();
                 selectedTag.putInt("x", selectedTarget.pos().getX());
                 selectedTag.putInt("y", selectedTarget.pos().getY());
                 selectedTag.putInt("z", selectedTarget.pos().getZ());
                 tag.put("LinkPos", selectedTag);
-            }
-
-            if (player.isShiftKeyDown()) {
-                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
             }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
@@ -239,6 +243,11 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                 : ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        return use(state, level, pos, player, InteractionHand.MAIN_HAND, hit);
+    }
+
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -262,7 +271,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
+        return ConnectorOrientation.onWrenched(state, context);
     }
 
     @Override

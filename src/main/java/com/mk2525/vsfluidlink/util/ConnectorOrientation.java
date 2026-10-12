@@ -1,5 +1,6 @@
 package com.mk2525.vsfluidlink.util;
 
+import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.simibubi.create.content.equipment.wrench.IWrenchable;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import net.minecraft.core.Direction;
@@ -13,6 +14,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 public final class ConnectorOrientation {
     public static final IntegerProperty ROLL = IntegerProperty.create("roll", 0, 3);
     private static final BooleanProperty UPSIDE_DOWN = BooleanProperty.create("upside_down");
+    private static final IWrenchable PICKUP = new IWrenchable() {};
 
     private ConnectorOrientation() {}
 
@@ -79,6 +81,18 @@ public final class ConnectorOrientation {
     }
 
     public static InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {
+        if (context.getPlayer() == null || !context.getPlayer().mayBuild()) return InteractionResult.PASS;
+        return VsFluidLinkConfig.wrenchRightClickAction() == VsFluidLinkConfig.WrenchRightClickAction.ROTATE
+                ? PICKUP.onSneakWrenched(state, context) : rotateWrenched(state, context);
+    }
+
+    public static InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        if (context.getPlayer() == null || !context.getPlayer().mayBuild()) return InteractionResult.PASS;
+        return VsFluidLinkConfig.wrenchRightClickAction() == VsFluidLinkConfig.WrenchRightClickAction.ROTATE
+                ? rotateWrenched(state, context) : InteractionResult.PASS;
+    }
+
+    private static InteractionResult rotateWrenched(BlockState state, UseOnContext context) {
         if (!context.getLevel().isClientSide) {
             var level = context.getLevel();
             var pos = context.getClickedPos();

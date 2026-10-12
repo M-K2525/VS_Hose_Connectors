@@ -10,6 +10,14 @@ public class VsFluidLinkConfig {
     public static final double DEFAULT_MAGNET_CONNECTION_ANGLE = 45.0;
     public static final double DEFAULT_MAGNET_DISCONNECTION_ANGLE = 90.0;
     public static final double DEFAULT_MAGNET_CHAIN_DISCONNECTION_ANGLE = 90.0;
+    public enum WrenchRightClickAction implements net.neoforged.neoforge.common.TranslatableEnum {
+        CONNECT, ROTATE;
+
+        @Override
+        public net.minecraft.network.chat.Component getTranslatedName() {
+            return net.minecraft.network.chat.Component.translatable("vsfluidlink.configuration.wrenchRightClickAction." + name());
+        }
+    }
     public static final ServerConfig SERVER;
     public static final ModConfigSpec SERVER_SPEC;
 
@@ -36,6 +44,14 @@ public class VsFluidLinkConfig {
         return facingDot < -Math.cos(Math.toRadians(angle));
     }
 
+    public static boolean connectWithoutWrench() {
+        return !SERVER_SPEC.isLoaded() || SERVER.connectWithoutWrench.get();
+    }
+
+    public static WrenchRightClickAction wrenchRightClickAction() {
+        return SERVER_SPEC.isLoaded() ? SERVER.wrenchRightClickAction.get() : WrenchRightClickAction.ROTATE;
+    }
+
     public static boolean shouldMagnetDisconnect(double facingDot, boolean chain) {
         double angle = chain
                 ? (SERVER_SPEC.isLoaded() ? SERVER.magnetChainDisconnectionAngle.get() : DEFAULT_MAGNET_CHAIN_DISCONNECTION_ANGLE)
@@ -50,6 +66,8 @@ public class VsFluidLinkConfig {
         public final ModConfigSpec.DoubleValue magnetMaxConnectionAngle;
         public final ModConfigSpec.DoubleValue magnetDisconnectionAngle;
         public final ModConfigSpec.DoubleValue magnetChainDisconnectionAngle;
+        public final ModConfigSpec.BooleanValue connectWithoutWrench;
+        public final ModConfigSpec.EnumValue<WrenchRightClickAction> wrenchRightClickAction;
         public final ModConfigSpec.BooleanValue restrictWorldToWorldConnection;
         public final ModConfigSpec.BooleanValue restrictIntraShipConnection;
         public final ModConfigSpec.IntValue fluidCapacity;
@@ -58,6 +76,16 @@ public class VsFluidLinkConfig {
 
         public ServerConfig(ModConfigSpec.Builder builder) {
             builder.push("general");
+
+            connectWithoutWrench = builder
+                    .comment("Allow non-wrench items and an empty hand to connect or disconnect manual connectors.",
+                            "Sneaking with a non-wrench item bypasses linking so items can be used normally.")
+                    .define("connectWithoutWrench", true);
+            wrenchRightClickAction = builder
+                    .comment("ROTATE: wrench right-click rotates, sneak-right-click picks up the connector.",
+                            "CONNECT: wrench right-click links manual connectors, sneak-right-click rotates (legacy behavior).",
+                            "Magnet connectors remain automatic and cannot be manually linked.")
+                    .defineEnum("wrenchRightClickAction", WrenchRightClickAction.ROTATE);
 
             maxLinkDistance = builder
                     .comment("Maximum distance between connected blocks before the link breaks.")

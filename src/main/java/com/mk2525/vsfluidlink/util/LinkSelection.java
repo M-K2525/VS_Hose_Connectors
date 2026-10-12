@@ -2,6 +2,7 @@ package com.mk2525.vsfluidlink.util;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +25,8 @@ public final class LinkSelection {
     public static void set(Player player, String channel, BlockPos pos) {
         SELECTED_POSITIONS.put(new Key(player.getUUID(), channel), new Selection(
             new LinkTarget(pos.immutable(), VSLinkUtil.getSpatialId(player.level(), pos)),
-            null
+            null,
+            new WeakReference<>(player.level())
         ));
     }
 
@@ -32,23 +34,44 @@ public final class LinkSelection {
         BlockPos pos = blockEntity.getBlockPos();
         SELECTED_POSITIONS.put(new Key(player.getUUID(), channel), new Selection(
             new LinkTarget(pos.immutable(), VSLinkUtil.getSpatialId(blockEntity.getLevel(), pos)),
-            new WeakReference<>(blockEntity)
+            new WeakReference<>(blockEntity),
+            new WeakReference<>(player.level())
         ));
     }
 
     public static @Nullable LinkTarget getTarget(Player player, String channel) {
-        Selection selection = SELECTED_POSITIONS.get(new Key(player.getUUID(), channel));
+        Selection selection = getSelection(player, channel);
         return selection != null ? selection.target() : null;
     }
 
+    private static @Nullable Selection getSelection(Player player, String channel) {
+        Key key = new Key(player.getUUID(), channel);
+        Selection selection = SELECTED_POSITIONS.get(key);
+        if (selection != null && selection.levelRef().get() != player.level()) {
+            SELECTED_POSITIONS.remove(key, selection);
+            return null;
+        }
+        return selection;
+    }
+
+    public static <T extends BlockEntity> @Nullable LinkTarget getValidTarget(Player player, String channel, Class<T> expectedType) {
+        LinkTarget target = getTarget(player, channel);
+        if (target != null && resolve(player, channel, expectedType) == null) {
+            clear(player, channel);
+            return null;
+        }
+        return target;
+    }
+
     public static <T extends BlockEntity> @Nullable T resolve(Player player, String channel, Class<T> expectedType) {
-        Selection selection = SELECTED_POSITIONS.get(new Key(player.getUUID(), channel));
+        Selection selection = getSelection(player, channel);
         if (selection == null) {
             return null;
         }
 
         BlockEntity cached = selection.blockEntityRef != null ? selection.blockEntityRef.get() : null;
         if (expectedType.isInstance(cached)
+            && cached.getLevel() == player.level()
             && !cached.isRemoved()
             && VSLinkUtil.isSameEndpoint(cached, selection.target.pos(), selection.target.spaceId())) {
             return expectedType.cast(cached);
@@ -64,6 +87,6 @@ public final class LinkSelection {
     private record Key(UUID playerId, String channel) {
     }
 
-    private record Selection(LinkTarget target, @Nullable WeakReference<BlockEntity> blockEntityRef) {
+    private record Selection(LinkTarget target, @Nullable WeakReference<BlockEntity> blockEntityRef, WeakReference<Level> levelRef) {
     }
 }
