@@ -99,7 +99,7 @@ public class MagnetHoseConnectorBlock extends BaseEntityBlock implements IWrench
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
+        return ConnectorOrientation.onWrenched(state, context);
     }
 
     @Override

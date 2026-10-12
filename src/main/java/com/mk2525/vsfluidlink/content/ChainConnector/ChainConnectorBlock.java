@@ -1,6 +1,8 @@
 package com.mk2525.vsfluidlink.content.ChainConnector;
 
 import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+import com.mk2525.vsfluidlink.util.ConnectorInteraction;
+import com.mk2525.vsfluidlink.util.LinkSelection;
 
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
@@ -36,6 +38,7 @@ import net.minecraft.world.phys.Vec3;
 public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<ChainConnectorBlockEntity>, IWrenchable {
 
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
+    private static final String LINK_SELECTION_CHANNEL = "chain_connector";
 
     public ChainConnectorBlock(Properties properties) {
         super(properties.strength(2.0f).requiresCorrectToolForDrops());
@@ -89,14 +92,20 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getItemInHand(hand);
 
-        if (heldItem.getItem().getDescriptionId().contains("wrench")) {
+        if (ConnectorInteraction.isWrench(heldItem)) {
+            if (player.isShiftKeyDown()) return onSneakWrenched(state, new UseOnContext(player, hand, hit));
+            if (VsFluidLinkConfig.wrenchRightClickAction() == VsFluidLinkConfig.WrenchRightClickAction.ROTATE) {
+                return onWrenched(state, new UseOnContext(player, hand, hit));
+            }
+        }
+
+        if (ConnectorInteraction.canLink(heldItem, player.isShiftKeyDown())) {
             if (level.isClientSide) return InteractionResult.SUCCESS;
 
-            CompoundTag tag = heldItem.getOrCreateTag();
+            CompoundTag tag = new CompoundTag();
+            BlockPos selected = LinkSelection.getValid(player, LINK_SELECTION_CHANNEL, ChainConnectorBlockEntity.class);
+            if (selected != null) tag.put("LinkPos", net.minecraft.nbt.NbtUtils.writeBlockPos(selected));
 
-            if (player.isShiftKeyDown()) {
-                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
-            }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof ChainConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
@@ -116,6 +125,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     BlockPos selectedPos = net.minecraft.nbt.NbtUtils.readBlockPos(tag.getCompound("LinkPos"));
                     if (selectedPos.equals(pos)) {
                         tag.remove("LinkPos");
+                        LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     }
                 }
 
@@ -124,6 +134,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
             if (!tag.contains("LinkPos")) {
                 tag.put("LinkPos", net.minecraft.nbt.NbtUtils.writeBlockPos(pos));
+                LinkSelection.set(player, LINK_SELECTION_CHANNEL, pos);
                 player.displayClientMessage(Component.translatable("vsfluidlink.message.first_pos_selected", pos.toShortString()), true);
                 level.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
             } else {
@@ -141,6 +152,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.distance_too_far"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -154,6 +166,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.world_to_world_restricted"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -161,6 +174,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.intra_ship_restricted"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -175,6 +189,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
                     level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     level.playSound(null, firstPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                 }
             }
             return InteractionResult.SUCCESS;
@@ -200,7 +215,7 @@ public class ChainConnectorBlock extends DirectionalKineticBlock implements IBE<
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
+        return ConnectorOrientation.onWrenched(state, context);
     }
     @Override
     public InteractionResult onSneakWrenched(BlockState state, UseOnContext context) {

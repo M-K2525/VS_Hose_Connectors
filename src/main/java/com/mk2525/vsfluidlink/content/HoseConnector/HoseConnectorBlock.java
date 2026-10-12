@@ -1,6 +1,8 @@
 package com.mk2525.vsfluidlink.content.HoseConnector;
 
 import com.mk2525.vsfluidlink.util.ConnectorOrientation;
+import com.mk2525.vsfluidlink.util.ConnectorInteraction;
+import com.mk2525.vsfluidlink.util.LinkSelection;
 
 import com.mk2525.vsfluidlink.VsFluidLinkConfig;
 import com.mk2525.vsfluidlink.registry.ModBlockEntities;
@@ -40,6 +42,7 @@ import org.jetbrains.annotations.Nullable;
 public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     
     public static final BooleanProperty LINKED = BooleanProperty.create("linked");
+    private static final String LINK_SELECTION_CHANNEL = "hose_connector";
     public static final DirectionProperty HORIZONTAL_FACING = BlockStateProperties.FACING;
     public static final BooleanProperty UPSIDE_DOWN = BooleanProperty.create("upside_down");
 
@@ -97,14 +100,20 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getItemInHand(hand);
         
-        if (heldItem.getItem().getDescriptionId().contains("wrench")) {
+        if (ConnectorInteraction.isWrench(heldItem)) {
+            if (player.isShiftKeyDown()) return onSneakWrenched(state, new UseOnContext(player, hand, hit));
+            if (VsFluidLinkConfig.wrenchRightClickAction() == VsFluidLinkConfig.WrenchRightClickAction.ROTATE) {
+                return onWrenched(state, new UseOnContext(player, hand, hit));
+            }
+        }
+
+        if (ConnectorInteraction.canLink(heldItem, player.isShiftKeyDown())) {
             if (level.isClientSide) return InteractionResult.SUCCESS;
 
-            CompoundTag tag = heldItem.getOrCreateTag();
+            CompoundTag tag = new CompoundTag();
+            BlockPos selected = LinkSelection.getValid(player, LINK_SELECTION_CHANNEL, HoseConnectorBlockEntity.class);
+            if (selected != null) tag.put("LinkPos", net.minecraft.nbt.NbtUtils.writeBlockPos(selected));
             
-            if (player.isShiftKeyDown()) {
-                return onSneakWrenched(state, new UseOnContext(player, hand, hit));
-            }
 
             BlockEntity clickedBe = level.getBlockEntity(pos);
             if (clickedBe instanceof HoseConnectorBlockEntity linkBe && linkBe.getTargetPos() != null) {
@@ -124,6 +133,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                     BlockPos selectedPos = net.minecraft.nbt.NbtUtils.readBlockPos(tag.getCompound("LinkPos"));
                     if (selectedPos.equals(pos)) {
                         tag.remove("LinkPos");
+                        LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     }
                 }
                 
@@ -132,6 +142,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
 
             if (!tag.contains("LinkPos")) {
                 tag.put("LinkPos", net.minecraft.nbt.NbtUtils.writeBlockPos(pos));
+                LinkSelection.set(player, LINK_SELECTION_CHANNEL, pos);
                 player.displayClientMessage(Component.translatable("vsfluidlink.message.first_pos_selected", pos.toShortString()), true);
                 level.playSound(null, pos, SoundEvents.UI_BUTTON_CLICK.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
             } else {
@@ -149,6 +160,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.distance_too_far"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -162,6 +174,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.world_to_world_restricted"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -169,6 +182,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                     player.displayClientMessage(Component.translatable("vsfluidlink.message.intra_ship_restricted"), true);
                     level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.get(), SoundSource.BLOCKS, 1.0f, 1.0f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                     return InteractionResult.SUCCESS;
                 }
 
@@ -183,6 +197,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
                     level.playSound(null, pos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     level.playSound(null, firstPos, SoundEvents.ANVIL_PLACE, SoundSource.BLOCKS, 1.0f, 1.3f);
                     tag.remove("LinkPos");
+                    LinkSelection.clear(player, LINK_SELECTION_CHANNEL);
                 }
             }
             return InteractionResult.SUCCESS;
@@ -210,7 +225,7 @@ public class HoseConnectorBlock extends BaseEntityBlock implements IWrenchable {
     
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
+        return ConnectorOrientation.onWrenched(state, context);
     }
 
     @Override

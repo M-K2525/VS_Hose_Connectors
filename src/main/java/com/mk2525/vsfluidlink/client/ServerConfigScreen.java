@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Checkbox;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
@@ -37,6 +38,8 @@ public final class ServerConfigScreen extends Screen {
     static List<Option> configOptions() {
         var config = VsFluidLinkConfig.SERVER;
         return List.of(
+                new Option("connectWithoutWrench", config.connectWithoutWrench, false),
+                new Option("wrenchRightClickAction", config.wrenchRightClickAction, false),
                 new Option("maxLinkDistance", config.maxLinkDistance, false),
                 new Option("magnetScanDistance", config.magnetScanDistance, false),
                 new Option("magnetScanRadius", config.magnetScanRadius, false),
@@ -102,6 +105,13 @@ public final class ServerConfigScreen extends Screen {
                             draft.put(option, Boolean.toString(selected()));
                         }
                     });
+                } else if (option.value() instanceof ForgeConfigSpec.EnumValue<?>) {
+                    addRenderableWidget(CycleButton.builder(VsFluidLinkConfig.WrenchRightClickAction::label)
+                            .withValues(VsFluidLinkConfig.WrenchRightClickAction.values())
+                            .withInitialValue(VsFluidLinkConfig.WrenchRightClickAction.valueOf(draft.get(option)))
+                            .displayOnlyValue()
+                            .create(x, y, 90, 20, text(option.key()), (button, value) -> draft.put(option, value.name())))
+                            .setTooltip(Tooltip.create(text(option.key() + ".tooltip")));
                 } else {
                     EditBox input = new EditBox(font, x, y, 90, 20, text(option.key()));
                     input.setMaxLength(32);
@@ -142,8 +152,13 @@ public final class ServerConfigScreen extends Screen {
 
     private Object parsed(Option option) {
         String value = draft.get(option);
-        if (option.value() instanceof ForgeConfigSpec.BooleanValue) return Boolean.parseBoolean(value);
-        if (option.value() instanceof ForgeConfigSpec.IntValue) return Integer.parseInt(value);
+        return parseValue(option.value(), value);
+    }
+
+    static Object parseValue(ForgeConfigSpec.ConfigValue<?> setting, String value) {
+        if (setting instanceof ForgeConfigSpec.BooleanValue) return Boolean.parseBoolean(value);
+        if (setting instanceof ForgeConfigSpec.IntValue) return Integer.parseInt(value);
+        if (setting instanceof ForgeConfigSpec.EnumValue<?>) return VsFluidLinkConfig.WrenchRightClickAction.valueOf(value);
         double number = Double.parseDouble(value);
         if (!Double.isFinite(number)) throw new IllegalArgumentException("Non-finite config value");
         return number;
@@ -169,6 +184,8 @@ public final class ServerConfigScreen extends Screen {
             if (option.value() instanceof ForgeConfigSpec.BooleanValue setting) setting.set((Boolean) value);
             else if (option.value() instanceof ForgeConfigSpec.IntValue setting) setting.set((Integer) value);
             else if (option.value() instanceof ForgeConfigSpec.DoubleValue setting) setting.set((Double) value);
+            else if (option.value() == VsFluidLinkConfig.SERVER.wrenchRightClickAction)
+                VsFluidLinkConfig.SERVER.wrenchRightClickAction.set((VsFluidLinkConfig.WrenchRightClickAction) value);
         }
         VsFluidLinkConfig.SERVER_SPEC.save();
         onClose();

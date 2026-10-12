@@ -25,6 +25,8 @@ public class ModCommonEvents {
 
     @SubscribeEvent
     public static void onRightClickBlock(PlayerInteractEvent.RightClickBlock event) {
+        // Let connectors handle rotation/pickup even while a connection point is selected.
+        if (event.getLevel().getBlockState(event.getPos()).hasProperty(com.mk2525.vsfluidlink.util.ConnectorOrientation.ROLL)) return;
         if (tryClearSelection(event.getEntity(), event.getLevel(), event.getPos(), event.getHand())) {
             event.setCanceled(true);
             event.setCancellationResult(InteractionResult.SUCCESS);
@@ -46,7 +48,7 @@ public class ModCommonEvents {
         }
 
         ItemStack heldItem = player.getItemInHand(hand);
-        if (!heldItem.getItem().getDescriptionId().contains("wrench") || !player.isShiftKeyDown()) {
+        if (!com.mk2525.vsfluidlink.util.ConnectorInteraction.isWrench(heldItem) || !player.isShiftKeyDown()) {
             return false;
         }
 

@@ -109,6 +109,6 @@ public class MagnetChainConnectorBlock extends DirectionalKineticBlock implement
 
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
-        return InteractionResult.PASS;
+        return ConnectorOrientation.onWrenched(state, context);
     }
 }

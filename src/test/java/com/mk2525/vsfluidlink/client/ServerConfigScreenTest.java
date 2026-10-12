@@ -6,6 +6,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ServerConfigScreenTest {
+    @Test void wrenchModeIsParsedAsEnumInsteadOfNumber() {
+        for (var action : VsFluidLinkConfig.WrenchRightClickAction.values()) {
+            var parsed = ServerConfigScreen.parseValue(VsFluidLinkConfig.SERVER.wrenchRightClickAction, action.name());
+            assertSame(action, parsed);
+            net.minecraftforge.common.ForgeConfigSpec.ValueSpec spec =
+                    VsFluidLinkConfig.SERVER_SPEC.getRaw(VsFluidLinkConfig.SERVER.wrenchRightClickAction.getPath());
+            assertTrue(spec.test(parsed));
+        }
+        assertThrows(IllegalArgumentException.class, () -> ServerConfigScreen.parseValue(
+                VsFluidLinkConfig.SERVER.wrenchRightClickAction, "invalid"));
+    }
     @Test void screenIncludesEveryGeneralAndBufferSetting() {
         var options = ServerConfigScreen.configOptions();
         for (String section : List.of("general", "buffers")) {
