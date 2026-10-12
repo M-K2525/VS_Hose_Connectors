@@ -102,7 +102,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
                 
                 double dot = myTransform.direction.dot(targetTransform.direction);
                 
-                if (dot > -0.500) { // 角度が開きすぎた場合
+                if (VsFluidLinkConfig.shouldMagnetDisconnect(dot, false)) {
                     disconnect(level, pos, blockEntity);
                     return;
                 }
@@ -192,7 +192,7 @@ public class MagnetHoseConnectorBlockEntity extends HoseConnectorBlockEntity {
         VSLinkUtil.WorldTransform transform1 = VSLinkUtil.getWorldTransform(level, pos1, facing1);
         VSLinkUtil.WorldTransform transform2 = VSLinkUtil.getWorldTransform(level, pos2, facing2);
         
-        return transform1.direction.dot(transform2.direction) < -0.890; // approx 170 degrees
+        return VsFluidLinkConfig.canMagnetConnect(transform1.direction.dot(transform2.direction));
     }
 
     private static void disconnect(Level level, BlockPos pos, MagnetHoseConnectorBlockEntity blockEntity) {
